@@ -141,17 +141,17 @@
     <header class="hero">
       <div class="shell">
         <span class="eyebrow"><span class="dot"></span>Architecture decision · 30.08.2026</span>
-        <h1>Не третий рефакторинг. Сначала — архитектурное расследование.</h1>
+        <h1>Trial прошёл: рефакторим только то, что выдержало опровержение.</h1>
         <p class="lead">Предыдущая программа уже вычистила локальные code smells. Следующий цикл должен искать не длинные функции, а распылённое владение: кто определяет правило, где находится источник истины и почему одна фича требует правок в несвязанных местах.</p>
         <div class="hero-grid">
           <div class="verdict">
-            <strong>Решение: <code>architecture-review</code> — provisional read-only gate</strong>
-            Проверенная ревизия <code>97dcf42e…</code> установлена без автообновлений. Начать с обзора и попытки опровергнуть каждую гипотезу. Это инструмент для испытания, а не признанный стандарт; массовая «волна» заранее не разрешается.
+            <strong>Решение: <code>architecture-review</code> остаётся read-only gate</strong>
+            Проверенная ревизия <code>97dcf42e…</code> не приняла два широких change surface за дефект и пропустила в реализацию только один узкий authority conflict. Массовая «волна» по-прежнему не разрешается.
           </div>
           <div class="status">
-            <span class="label">Статус инструмента</span>
-            <b>Pinned · provisional</b>
-            <p>Оставить после первого trial или удалить по измеримым критериям. Установка ≠ доверие.</p>
+            <span class="label">Результат первого trial</span>
+            <b>Keep · 1 narrow P2</b>
+            <p>Два false positive отвергнуты; один concept-owned cutover реализован и проверен.</p>
           </div>
         </div>
       </div>
@@ -184,7 +184,7 @@
           <article class="card pad span-3 metric"><b>0</b><span>исполняемых файлов, зависимостей и сетевых команд</span></article>
           <article class="card pad span-3 metric"><b>29/29</b><span>тестов репозитория плюс зелёный validator упаковки</span></article>
           <article class="card pad span-6"><span class="tag later">Проверено</span><h3>Supply chain узкий</h3><p>Установлены только четыре просмотренных Markdown/YAML-файла из exact commit. Хеши установленной копии совпали с проаудированным source; плавающего <code>main</code> и сторонних scripts нет.</p></article>
-          <article class="card pad span-6"><span class="tag stop">Не доказано</span><h3>Поведенческой валидации нет</h3><p>Автор сам маркирует workflow как <code>portable-candidate</code>. Есть один публично описанный refactor, но автор честно пишет, что controlled comparison не проводился. Trial обязан доказать добавленную ценность на MedScore.</p></article>
+          <article class="card pad span-6"><span class="tag later">Локальный trial</span><h3>Польза на MedScore доказана один раз</h3><p>Внешней eval-базы у skill всё ещё нет. Но первый парный trial дал измеримый сигнал: широкие hotspot-гипотезы были отвергнуты, а единственный surviving finding имел конкретного владельца, малый blast radius и исполняемую границу.</p></article>
         </div>
       </div>
     </section>
@@ -198,7 +198,7 @@
         <div class="card choice">
           <div class="choice-row"><div>Метод</div><div>Вердикт</div><div>Роль в MedScore</div></div>
           <div class="choice-row"><div><code>refactoring-patterns</code></div><div class="fit no">Не повторять</div><div>Уже использован: smells, named transformations, characterization, green-to-green.</div></div>
-          <div class="choice-row recommended"><div><code>architecture-review</code></div><div class="fit yes">Взять сейчас</div><div>Ищет ownership, authority, boundary drift и change surface; каждое замечание проходит disproof.</div></div>
+          <div class="choice-row recommended"><div><code>architecture-review</code></div><div class="fit yes">Оставить gate</div><div>Ищет ownership, authority, boundary drift и change surface; первый trial прошёл без давления на массовый рефакторинг.</div></div>
           <div class="choice-row"><div><code>improve-codebase-architecture</code></div><div class="fit no">Не брать сейчас</div><div>Огромная community (≈241k stars), полезные hotspot/deletion-test идеи, но уже опубликованы false-positive bias, чрезмерный grilling, HTML/CDN failure surface и реальная UI-регрессия после внедрения.</div></div>
           <div class="choice-row"><div><code>repository-layout-refactor</code></div><div class="fit cond">Условно</div><div>Только для доказанного дефекта concept ownership/layout; не для дробления по LOC.</div></div>
           <div class="choice-row"><div><code>codebase-architecture</code></div><div class="fit cond">Запасной</div><div>Хорошие Deepen→Harden идеи, но часть tooling-рекомендаций заточена под TypeScript.</div></div>
@@ -253,11 +253,11 @@
     <section>
       <div class="shell">
         <div class="section-head">
-          <h2>Куда смотреть сначала</h2>
-          <p>Это очередь гипотез, а не заранее объявленные дефекты. Приоритет задан недавним change coupling.</p>
+          <h2>Что показал первый парный trial</h2>
+          <p>Результат разделяет surviving finding, отвергнутые гипотезы и подтверждённый documentation drift.</p>
         </div>
         <div class="grid">
-          <article class="card pad span-4 hypothesis"><small>Основной trial</small><h3>Callback lifecycle · открыт</h3><p>152 затронутых файла. Проверяется, не размазан ли один смысл между provider evidence, projection/read model и release controls — либо это корректные независимые владельцы.</p></article>
+          <article class="card pad span-4"><span class="tag now">Trial · completed</span><h3>Callback lifecycle · broad finding rejected</h3><p>152 файла объясняются четырьмя разными владельцами: provider contract, domain reduction, persistence/control и cabinet reader. Выжил один P2: runtime-инвентарь schema objects имел несколько независимых копий.</p></article>
           <article class="card pad span-4"><span class="tag later">Negative control · rejected</span><h3>Новое поле витрины · не finding</h3><p>41 файл выглядел подозрительно, но вычисление и conversion predicate имеют одного владельца; migration, projections, API, list/card/export в основном распространяют явный контракт. Ширина здесь пока обоснована.</p></article>
           <article class="card pad span-4 hypothesis"><small>Подтверждённый drift</small><h3>Architecture doc · устарел</h3><p>Документ мая описывает уже удалённый production path. Это проблема навигации и доверия к документации, но не автоматическое основание перекраивать код.</p></article>
         </div>
@@ -294,12 +294,12 @@
     <section>
       <div class="shell">
         <div class="section-head">
-          <h2>Первое конкретное действие</h2>
+          <h2>Первый concept-owned cutover</h2>
         </div>
         <div class="card pad span-12">
-          <span class="tag now">Start here</span>
-          <h3>Парный trial: callback target + negative control</h3>
-          <p>Ручной baseline уже начат на зафиксированном origin SHA без записи в грязный checkout. В следующем сеансе зарегистрированный skill должен независимо классифицировать callback authority map и не принять широкое, но обоснованное распространение поля за дефект. Результат — доказанная проблема, доказанный no-op или удаление skill как бесполезного.</p>
+          <span class="tag now">Phase 1 · merged</span>
+          <h3>Один authoritative runtime schema contract</h3>
+          <p>Таблицы, views, sequences и control-function signatures теперь определены одним владельцем; dormant-state producer/verifier, ACL boundary и release preflight используют его напрямую. Исторические migrations оставлены самодостаточными. 185 профильных тестов прошли; два известных schema-head падения независимо воспроизведены на чистом baseline.</p>
         </div>
       </div>
     </section>
