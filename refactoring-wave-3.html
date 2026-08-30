@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Выбор методики для следующего архитектурного цикла MedScore">
+  <title>MedScore · Архитектурный цикл после рефакторинга</title>
+  <style>
+    :root {
+      --ink: #152033;
+      --muted: #647087;
+      --paper: #f4f1eb;
+      --card: rgba(255,255,255,.88);
+      --line: rgba(30,47,75,.13);
+      --navy: #173f5f;
+      --blue: #2867b2;
+      --blue-soft: #eaf2ff;
+      --green: #087f5b;
+      --green-soft: #e6fcf5;
+      --amber: #b86500;
+      --amber-soft: #fff3d6;
+      --red: #b53b3b;
+      --red-soft: #fff0f0;
+      --shadow: 0 22px 60px rgba(25, 39, 65, .10);
+      --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 4%, rgba(40,103,178,.14), transparent 31rem),
+        radial-gradient(circle at 92% 15%, rgba(8,127,91,.11), transparent 28rem),
+        linear-gradient(180deg, #f8f6f1 0, var(--paper) 72%);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+      line-height: 1.55;
+    }
+    a { color: var(--blue); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    .shell { width: min(1160px, calc(100% - 40px)); margin: 0 auto; }
+    .hero { padding: 74px 0 44px; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 9px;
+      padding: 7px 12px; border: 1px solid #cad8ec; border-radius: 999px;
+      background: rgba(255,255,255,.58); color: var(--navy);
+      font-size: 12px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 5px rgba(8,127,91,.12); }
+    h1 { margin: 23px 0 17px; max-width: 970px; font-size: clamp(40px, 6.5vw, 76px); line-height: .99; letter-spacing: -.05em; }
+    .lead { max-width: 860px; margin: 0; color: var(--muted); font-size: clamp(18px, 2.3vw, 23px); }
+    .hero-grid { display: grid; grid-template-columns: 1.25fr .75fr; gap: 16px; margin-top: 34px; }
+    .verdict, .status {
+      border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow);
+    }
+    .verdict { padding: 29px 31px; }
+    .verdict strong { display: block; margin-bottom: 8px; font-size: 21px; }
+    .status { padding: 26px; background: linear-gradient(145deg, #173f5f, #102e48); color: white; }
+    .status .label { color: #b8d6ef; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .status b { display: block; margin-top: 8px; font-size: 31px; line-height: 1.05; }
+    .status p { margin: 10px 0 0; color: #d4e4f1; font-size: 14px; }
+    section { padding: 38px 0; }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 28px; margin-bottom: 20px; }
+    h2 { margin: 0; font-size: clamp(28px, 4vw, 42px); line-height: 1.1; letter-spacing: -.035em; }
+    .section-head p { max-width: 590px; margin: 0; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+    .card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); box-shadow: 0 10px 30px rgba(25,39,65,.055); }
+    .pad { padding: 24px; }
+    .span-3 { grid-column: span 3; }
+    .span-4 { grid-column: span 4; }
+    .span-6 { grid-column: span 6; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: span 12; }
+    .metric b { display: block; color: var(--navy); font-size: clamp(32px, 4vw, 48px); line-height: 1; letter-spacing: -.04em; }
+    .metric span { display: block; margin-top: 9px; color: var(--muted); font-size: 14px; }
+    .tag { display: inline-block; margin-bottom: 13px; padding: 5px 9px; border-radius: 8px; font-size: 11px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+    .tag.used { color: #566079; background: #eef0f4; }
+    .tag.now { color: var(--blue); background: var(--blue-soft); }
+    .tag.later { color: var(--green); background: var(--green-soft); }
+    .tag.stop { color: var(--red); background: var(--red-soft); }
+    .card h3 { margin: 0 0 9px; font-size: 20px; letter-spacing: -.015em; }
+    .card p { margin: 0; color: var(--muted); }
+    .choice { overflow: hidden; }
+    .choice-row { display: grid; grid-template-columns: 1.05fr .65fr 1.5fr; }
+    .choice-row > div { padding: 16px 18px; border-top: 1px solid var(--line); }
+    .choice-row:first-child > div { border-top: 0; background: #eef1f5; color: var(--muted); font-size: 11px; font-weight: 850; letter-spacing: .07em; text-transform: uppercase; }
+    .choice-row.recommended { background: rgba(234,242,255,.55); }
+    .fit { font-weight: 850; }
+    .fit.yes { color: var(--green); }
+    .fit.cond { color: var(--amber); }
+    .fit.no { color: var(--red); }
+    .pipeline { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; counter-reset: steps; }
+    .step { position: relative; min-height: 205px; padding: 21px 19px; border: 1px solid var(--line); border-radius: 18px; background: var(--card); }
+    .step::before { counter-increment: steps; content: counter(steps); display: grid; place-items: center; width: 33px; height: 33px; margin-bottom: 17px; border-radius: 50%; color: white; background: var(--blue); font-weight: 900; }
+    .step:not(:last-child)::after { content: "→"; position: absolute; top: 25px; right: -19px; z-index: 2; color: #8b97aa; font-size: 23px; font-weight: 900; }
+    .step h3 { margin: 0 0 7px; font-size: 17px; }
+    .step p { margin: 0; color: var(--muted); font-size: 14px; }
+    .gate { padding: 27px; border: 1px solid #d9bd80; border-radius: var(--radius); background: linear-gradient(135deg, #fff7e7, #fff1d1); }
+    .gate strong { display: block; color: #8a4c00; font-size: 20px; }
+    .gate p { margin: 8px 0 0; color: #755b35; }
+    .criteria { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; margin: 0; padding: 0; list-style: none; }
+    .criteria li { position: relative; padding: 13px 0 13px 31px; border-bottom: 1px solid var(--line); }
+    .criteria li::before { content: "✓"; position: absolute; left: 0; top: 14px; display: grid; place-items: center; width: 21px; height: 21px; border-radius: 50%; background: var(--green-soft); color: var(--green); font-size: 12px; font-weight: 900; }
+    .hypothesis { border-left: 5px solid var(--amber); }
+    .hypothesis small { display: block; margin-bottom: 8px; color: var(--amber); font-size: 11px; font-weight: 850; letter-spacing: .07em; text-transform: uppercase; }
+    .meter { display: grid; grid-template-columns: 1fr auto 1fr; gap: 18px; align-items: center; }
+    .measure { padding: 22px; border: 1px solid var(--line); border-radius: 18px; background: rgba(255,255,255,.68); }
+    .measure b { display: block; margin-bottom: 8px; }
+    .measure ul { margin: 0; padding-left: 19px; color: var(--muted); }
+    .measure li + li { margin-top: 6px; }
+    .arrow { color: var(--blue); font-size: 28px; font-weight: 900; }
+    .rules { margin: 0; padding-left: 20px; color: var(--muted); }
+    .rules li + li { margin-top: 9px; }
+    .footer { padding: 45px 0 64px; color: var(--muted); font-size: 13px; }
+    .footer-inner { display: flex; justify-content: space-between; gap: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
+    @media (max-width: 940px) {
+      .hero-grid { grid-template-columns: 1fr; }
+      .span-3 { grid-column: span 6; }
+      .span-4, .span-6, .span-8 { grid-column: span 12; }
+      .pipeline { grid-template-columns: 1fr 1fr; }
+      .step:not(:last-child)::after { display: none; }
+    }
+    @media (max-width: 680px) {
+      .shell { width: min(100% - 24px, 1160px); }
+      .hero { padding-top: 42px; }
+      .verdict, .status, .pad { padding: 20px; }
+      .section-head { display: block; }
+      .section-head p { margin-top: 10px; }
+      .span-3 { grid-column: span 12; }
+      .pipeline, .criteria, .meter { grid-template-columns: 1fr; }
+      .arrow { transform: rotate(90deg); justify-self: center; }
+      .choice-row { grid-template-columns: 1fr; }
+      .choice-row:first-child { display: none; }
+      .choice-row > div { border-top: 0; padding-top: 8px; padding-bottom: 8px; }
+      .choice-row > div:first-child { padding-top: 17px; border-top: 1px solid var(--line); font-weight: 850; }
+      .footer-inner { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div class="shell">
+        <span class="eyebrow"><span class="dot"></span>Architecture decision · 30.08.2026</span>
+        <h1>Не третий рефакторинг. Сначала — архитектурное расследование.</h1>
+        <p class="lead">Предыдущая программа уже вычистила локальные code smells. Следующий цикл должен искать не длинные функции, а распылённое владение: кто определяет правило, где находится источник истины и почему одна фича требует правок в несвязанных местах.</p>
+        <div class="hero-grid">
+          <div class="verdict">
+            <strong>Решение: <code>architecture-review</code> — обязательный входной шлюз</strong>
+            Начать с read-only обзора и попытки опровергнуть каждую гипотезу. <code>repository-layout-refactor</code> подключать только там, где доказано, что проблема действительно в границе или владельце концепта. Массовая «волна» заранее не разрешается.
+          </div>
+          <div class="status">
+            <span class="label">Допустимый итог обзора</span>
+            <b>Не рефакторить</b>
+            <p>Если hotspot оказался глубоким, но связным модулем, его размер и churn — не дефект.</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Почему вопрос возник снова</h2>
+          <p>После последнего структурного baseline проект очень быстро изменился. Это веская причина перепроверить архитектуру, но ещё не диагноз.</p>
+        </div>
+        <div class="grid">
+          <article class="card pad span-3 metric"><b>150+</b><span>коммитов после последнего завершённого цикла</span></article>
+          <article class="card pad span-3 metric"><b>130+</b><span>production-файлов затронуто новыми изменениями</span></article>
+          <article class="card pad span-3 metric"><b>+26k</b><span>строк production-кода добавлено</span></article>
+          <article class="card pad span-3 metric"><b>1 вывод</b><span>изменений много; качество границ ещё надо доказать</span></article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Какой скилл и когда</h2>
+          <p>Один универсальный «рефактор всего» здесь хуже двух разных ролей: сначала независимый диагноз, потом выбранная по типу дефекта ремедиация.</p>
+        </div>
+        <div class="card choice">
+          <div class="choice-row"><div>Метод</div><div>Вердикт</div><div>Роль в MedScore</div></div>
+          <div class="choice-row"><div><code>refactoring-patterns</code></div><div class="fit no">Не повторять</div><div>Уже использован: smells, named transformations, characterization, green-to-green.</div></div>
+          <div class="choice-row recommended"><div><code>architecture-review</code></div><div class="fit yes">Взять сейчас</div><div>Ищет ownership, authority, boundary drift и change surface; каждое замечание проходит disproof.</div></div>
+          <div class="choice-row"><div><code>repository-layout-refactor</code></div><div class="fit cond">Условно</div><div>Только для доказанного дефекта concept ownership/layout; не для дробления по LOC.</div></div>
+          <div class="choice-row"><div><code>codebase-architecture</code></div><div class="fit cond">Запасной</div><div>Хорошие Deepen→Harden идеи, но часть tooling-рекомендаций заточена под TypeScript.</div></div>
+          <div class="choice-row"><div><code>software-design-philosophy</code></div><div class="fit cond">Линза</div><div>Полезен для deep modules и information hiding, но сам по себе не даёт достаточной процедуры доказательства.</div></div>
+          <div class="choice-row"><div><code>architectural-refactor</code></div><div class="fit cond">После диагноза</div><div>Сильный execution-контур plan/manifest/log, но не отвечает, что именно надо менять.</div></div>
+          <div class="choice-row"><div>MedScore-specific skill</div><div class="fit no">Пока рано</div><div>Создавать только после одного измеренного цикла, иначе догадки превратятся в вечный регламент.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Рабочий цикл</h2>
+          <p>Каждый шаг имеет stop-condition. В реализацию проходит ровно один кандидат, и только после доказательства проблемы.</p>
+        </div>
+        <div class="pipeline">
+          <article class="step"><h3>Свежий baseline</h3><p>Зафиксировать текущий HEAD, тесты, import boundaries и известные внешние причины красного.</p></article>
+          <article class="step"><h3>Replay изменений</h3><p>Восстановить 3–5 недавних cross-cutting фич: какие правила, owners и слои пришлось менять вместе.</p></article>
+          <article class="step"><h3>Disproof pass</h3><p>Искать контрдоказательства: может быть, hotspot законно концентрирует сложность и уже имеет одного владельца.</p></article>
+          <article class="step"><h3>Один срез</h3><p>Классифицировать дефект и выбрать минимальную ремедиацию. Layout — лишь один из вариантов.</p></article>
+          <article class="step"><h3>Закрепить</h3><p>Characterization, green-to-green, исполняемая граница, полный gate, единый релиз и rollback.</p></article>
+        </div>
+        <div class="gate" style="margin-top:16px">
+          <strong>Hard gate</strong>
+          <p>Нет доказанного competing authority, duplicated policy, leaking boundary или повторяющегося multi-owner change surface — нет рефакторинга. «Файл большой» и «его часто меняют» сами по себе не проходят.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Что считать доказательством</h2>
+          <p>Архитектурное замечание обязано быть фальсифицируемым и привязанным к реальным изменениям, а не к вкусу автора обзора.</p>
+        </div>
+        <div class="card pad">
+          <ul class="criteria">
+            <li>Одно доменное правило имеет несколько мест, способных независимо изменить его смысл.</li>
+            <li>Схожие изменения повторно требуют синхронных правок у нескольких владельцев.</li>
+            <li>Пассивные транспортные или storage-слои вынуждены знать новые варианты доменного понятия.</li>
+            <li>Внутренности одного модуля протекают в тесты и потребителей мимо публичного seam.</li>
+            <li>Есть bidirectional knowledge или обход существующей import/dependency границы.</li>
+            <li>Предложенная граница уменьшает replay-сценарий и не переносит сложность в сеть фасадов.</li>
+            <li>Для нового owner можно написать исполняемый контракт, который реально падает при нарушении.</li>
+            <li>Каждая отвергнутая гипотеза записана рядом с причиной, чтобы её не продавали повторно.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Куда смотреть сначала</h2>
+          <p>Это очередь гипотез, а не заранее объявленные дефекты. Приоритет задан недавним change coupling.</p>
+        </div>
+        <div class="grid">
+          <article class="card pad span-4 hypothesis"><small>Гипотеза 01</small><h3>Callback lifecycle</h3><p>Проверить, не размазан ли один смысл между provider evidence, projection/read model и release controls — либо это корректные независимые владельцы.</p></article>
+          <article class="card pad span-4 hypothesis"><small>Гипотеза 02</small><h3>Новые поля витрины</h3><p>Replay распространения одного поля через анализ, storage, sync, list/card/export: где должен жить канонический контракт и какие читатели пассивны.</p></article>
+          <article class="card pad span-4 hypothesis"><small>Гипотеза 03</small><h3>Release transaction</h3><p>Проверить, является ли высокий churn признаком распылённой транзакции или оправданной концентрацией safety-логики.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Как доказать пользу после cutover</h2>
+          <p>Без pre/post метрик «стало архитектурнее» превращается в красивую байку. Сравнение задаётся до изменения.</p>
+        </div>
+        <div class="meter">
+          <div class="measure"><b>Baseline: replay 2–3 прошлых изменений</b><ul><li>production-файлы и модули</li><li>policy/authority owners</li><li>boundary crossings</li><li>release coordination и регрессии</li></ul></div>
+          <div class="arrow">→</div>
+          <div class="measure"><b>После: реальный похожий change</b><ul><li>сократился ли change surface</li><li>не выросло ли число фасадов</li><li>сработал ли enforcement</li><li>не ухудшились ли release/rollback</li></ul></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Ограничения запуска</h2>
+          <p>Community-скилл — инструкция, а не доверенная бинарь. Его надо проверить, зафиксировать и подчинить локальным правилам проекта.</p>
+        </div>
+        <div class="grid">
+          <article class="card pad span-6"><span class="tag now">До изменений</span><h3>Read-only из текущего состояния</h3><ul class="rules"><li>Не трогать грязный общий root.</li><li>Не ставить диагноз по LOC и числу коммитов.</li><li>Локально проверить и pin-нуть выбранную версию skill.</li><li>Снять свежий green baseline вместо ссылки на старый прогон.</li></ul></article>
+          <article class="card pad span-6"><span class="tag later">Если дефект доказан</span><h3>Один concept-owned cutover</h3><ul class="rules"><li>Изолированный worktree от свежего канона.</li><li>Никаких параллельных реализаций и вечных compatibility wrappers.</li><li>Focused gate после каждого шага, полный gate перед merge.</li><li>Один fleet-wide релиз с preflight, manifest и rollback.</li></ul></article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Первое конкретное действие</h2>
+        </div>
+        <div class="card pad span-12">
+          <span class="tag now">Start here</span>
+          <h3>Read-only architecture review трёх–пяти недавних cross-cutting изменений</h3>
+          <p>Для каждого восстановить: исходный запрос → затронутые понятия → владельцы правил и данных → boundary crossings → обязательные совместные правки → контрдоказательства. Результат — карта доказанных проблем, отвергнутых гипотез и максимум один кандидат на реализацию.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="shell footer-inner">
+      <span>Sanitized architecture explainer · без production-данных и приватных путей</span>
+      <span>Источники методик: <a href="https://github.com/ruicore/codex-skills/tree/main/skills/architecture-review">architecture-review</a> · <a href="https://github.com/ruicore/codex-skills/tree/main/skills/repository-layout-refactor">repository-layout-refactor</a></span>
+    </div>
+  </footer>
+</body>
+</html>
