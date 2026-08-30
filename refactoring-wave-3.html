@@ -145,13 +145,13 @@
         <p class="lead">Предыдущая программа уже вычистила локальные code smells. Следующий цикл должен искать не длинные функции, а распылённое владение: кто определяет правило, где находится источник истины и почему одна фича требует правок в несвязанных местах.</p>
         <div class="hero-grid">
           <div class="verdict">
-            <strong>Решение: <code>architecture-review</code> — обязательный входной шлюз</strong>
-            Начать с read-only обзора и попытки опровергнуть каждую гипотезу. <code>repository-layout-refactor</code> подключать только там, где доказано, что проблема действительно в границе или владельце концепта. Массовая «волна» заранее не разрешается.
+            <strong>Решение: <code>architecture-review</code> — provisional read-only gate</strong>
+            Проверенная ревизия <code>97dcf42e…</code> установлена без автообновлений. Начать с обзора и попытки опровергнуть каждую гипотезу. Это инструмент для испытания, а не признанный стандарт; массовая «волна» заранее не разрешается.
           </div>
           <div class="status">
-            <span class="label">Допустимый итог обзора</span>
-            <b>Не рефакторить</b>
-            <p>Если hotspot оказался глубоким, но связным модулем, его размер и churn — не дефект.</p>
+            <span class="label">Статус инструмента</span>
+            <b>Pinned · provisional</b>
+            <p>Оставить после первого trial или удалить по измеримым критериям. Установка ≠ доверие.</p>
           </div>
         </div>
       </div>
@@ -175,6 +175,23 @@
     <section>
       <div class="shell">
         <div class="section-head">
+          <h2>Что выяснила проверка самого скилла</h2>
+          <p>Звёзды не замалчиваются. Мы отдельно проверили безопасность пакета, зрелость метода, историю автора и более популярные альтернативы.</p>
+        </div>
+        <div class="grid">
+          <article class="card pad span-3 metric"><b>2</b><span>звезды и 1 fork: слабый community-сигнал</span></article>
+          <article class="card pad span-3 metric"><b>7</b><span>ревизий skill одним основным автором с июня 2026</span></article>
+          <article class="card pad span-3 metric"><b>0</b><span>исполняемых файлов, зависимостей и сетевых команд</span></article>
+          <article class="card pad span-3 metric"><b>29/29</b><span>тестов репозитория плюс зелёный validator упаковки</span></article>
+          <article class="card pad span-6"><span class="tag later">Проверено</span><h3>Supply chain узкий</h3><p>Установлены только четыре просмотренных Markdown/YAML-файла из exact commit. Хеши установленной копии совпали с проаудированным source; плавающего <code>main</code> и сторонних scripts нет.</p></article>
+          <article class="card pad span-6"><span class="tag stop">Не доказано</span><h3>Поведенческой валидации нет</h3><p>Автор сам маркирует workflow как <code>portable-candidate</code>. Есть один публично описанный refactor, но автор честно пишет, что controlled comparison не проводился. Trial обязан доказать добавленную ценность на MedScore.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
           <h2>Какой скилл и когда</h2>
           <p>Один универсальный «рефактор всего» здесь хуже двух разных ролей: сначала независимый диагноз, потом выбранная по типу дефекта ремедиация.</p>
         </div>
@@ -182,6 +199,7 @@
           <div class="choice-row"><div>Метод</div><div>Вердикт</div><div>Роль в MedScore</div></div>
           <div class="choice-row"><div><code>refactoring-patterns</code></div><div class="fit no">Не повторять</div><div>Уже использован: smells, named transformations, characterization, green-to-green.</div></div>
           <div class="choice-row recommended"><div><code>architecture-review</code></div><div class="fit yes">Взять сейчас</div><div>Ищет ownership, authority, boundary drift и change surface; каждое замечание проходит disproof.</div></div>
+          <div class="choice-row"><div><code>improve-codebase-architecture</code></div><div class="fit no">Не брать сейчас</div><div>Огромная community (≈241k stars), полезные hotspot/deletion-test идеи, но уже опубликованы false-positive bias, чрезмерный grilling, HTML/CDN failure surface и реальная UI-регрессия после внедрения.</div></div>
           <div class="choice-row"><div><code>repository-layout-refactor</code></div><div class="fit cond">Условно</div><div>Только для доказанного дефекта concept ownership/layout; не для дробления по LOC.</div></div>
           <div class="choice-row"><div><code>codebase-architecture</code></div><div class="fit cond">Запасной</div><div>Хорошие Deepen→Harden идеи, но часть tooling-рекомендаций заточена под TypeScript.</div></div>
           <div class="choice-row"><div><code>software-design-philosophy</code></div><div class="fit cond">Линза</div><div>Полезен для deep modules и information hiding, но сам по себе не даёт достаточной процедуры доказательства.</div></div>
@@ -239,9 +257,9 @@
           <p>Это очередь гипотез, а не заранее объявленные дефекты. Приоритет задан недавним change coupling.</p>
         </div>
         <div class="grid">
-          <article class="card pad span-4 hypothesis"><small>Гипотеза 01</small><h3>Callback lifecycle</h3><p>Проверить, не размазан ли один смысл между provider evidence, projection/read model и release controls — либо это корректные независимые владельцы.</p></article>
-          <article class="card pad span-4 hypothesis"><small>Гипотеза 02</small><h3>Новые поля витрины</h3><p>Replay распространения одного поля через анализ, storage, sync, list/card/export: где должен жить канонический контракт и какие читатели пассивны.</p></article>
-          <article class="card pad span-4 hypothesis"><small>Гипотеза 03</small><h3>Release transaction</h3><p>Проверить, является ли высокий churn признаком распылённой транзакции или оправданной концентрацией safety-логики.</p></article>
+          <article class="card pad span-4 hypothesis"><small>Основной trial</small><h3>Callback lifecycle · открыт</h3><p>152 затронутых файла. Проверяется, не размазан ли один смысл между provider evidence, projection/read model и release controls — либо это корректные независимые владельцы.</p></article>
+          <article class="card pad span-4"><span class="tag later">Negative control · rejected</span><h3>Новое поле витрины · не finding</h3><p>41 файл выглядел подозрительно, но вычисление и conversion predicate имеют одного владельца; migration, projections, API, list/card/export в основном распространяют явный контракт. Ширина здесь пока обоснована.</p></article>
+          <article class="card pad span-4 hypothesis"><small>Подтверждённый drift</small><h3>Architecture doc · устарел</h3><p>Документ мая описывает уже удалённый production path. Это проблема навигации и доверия к документации, но не автоматическое основание перекраивать код.</p></article>
         </div>
       </div>
     </section>
@@ -280,8 +298,8 @@
         </div>
         <div class="card pad span-12">
           <span class="tag now">Start here</span>
-          <h3>Read-only architecture review трёх–пяти недавних cross-cutting изменений</h3>
-          <p>Для каждого восстановить: исходный запрос → затронутые понятия → владельцы правил и данных → boundary crossings → обязательные совместные правки → контрдоказательства. Результат — карта доказанных проблем, отвергнутых гипотез и максимум один кандидат на реализацию.</p>
+          <h3>Парный trial: callback target + negative control</h3>
+          <p>Ручной baseline уже начат на зафиксированном origin SHA без записи в грязный checkout. В следующем сеансе зарегистрированный skill должен независимо классифицировать callback authority map и не принять широкое, но обоснованное распространение поля за дефект. Результат — доказанная проблема, доказанный no-op или удаление skill как бесполезного.</p>
         </div>
       </div>
     </section>
@@ -290,7 +308,7 @@
   <footer class="footer">
     <div class="shell footer-inner">
       <span>Sanitized architecture explainer · без production-данных и приватных путей</span>
-      <span>Источники методик: <a href="https://github.com/ruicore/codex-skills/tree/main/skills/architecture-review">architecture-review</a> · <a href="https://github.com/ruicore/codex-skills/tree/main/skills/repository-layout-refactor">repository-layout-refactor</a></span>
+      <span>Источники: <a href="https://github.com/ruicore/codex-skills/tree/main/skills/architecture-review">ruicore architecture-review</a> · <a href="https://github.com/mattpocock/skills/tree/main/skills/engineering/improve-codebase-architecture">Matt Pocock alternative</a> · <a href="https://github.com/mattpocock/skills/issues/390">documented false-positive issue</a></span>
     </div>
   </footer>
 </body>
