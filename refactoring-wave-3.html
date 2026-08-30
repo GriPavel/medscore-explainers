@@ -296,10 +296,17 @@
         <div class="section-head">
           <h2>Первый concept-owned cutover</h2>
         </div>
-        <div class="card pad span-12">
-          <span class="tag now">Phase 1 · merged</span>
-          <h3>Один authoritative runtime schema contract</h3>
-          <p>Таблицы, views, sequences и control-function signatures теперь определены одним владельцем; dormant-state producer/verifier, ACL boundary и release preflight используют его напрямую. Исторические migrations оставлены самодостаточными. 185 профильных тестов прошли; два известных schema-head падения независимо воспроизведены на чистом baseline.</p>
+        <div class="grid">
+          <article class="card pad span-6">
+            <span class="tag now">Phase 1 · merged</span>
+            <h3>Один authoritative runtime schema contract</h3>
+            <p>Таблицы, views, sequences и control-function signatures теперь определены одним владельцем; dormant-state producer/verifier, ACL boundary и release preflight используют его напрямую. Исторические migrations оставлены самодостаточными и проверяются на точных ревизиях.</p>
+          </article>
+          <article class="card pad span-6">
+            <span class="tag now">Phase 2 · merged</span>
+            <h3>Текущий runtime проверяется на текущей схеме</h3>
+            <p>Runtime preflight больше не закреплён на случайной старой migration: его schema authority — Alembic head, а точный контракт migration 072 остаётся в отдельном тесте. Второй order-dependent дефект закрыт у владельца test isolation: process-cache reader сбрасывается между ephemeral базами. Итоговый профильный gate: 296 тестов без падений.</p>
+          </article>
         </div>
       </div>
     </section>
