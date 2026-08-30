@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Что было сделано в MedScore: нормализация промптов, fail-soft валидация и восстановление 433 звонков">
+  <title>MedScore · Что сделали с промптами и валидатором</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --muted: #647087;
+      --paper: #f5f7fb;
+      --card: rgba(255,255,255,.94);
+      --line: #dfe4ee;
+      --blue: #3b5bdb;
+      --blue-soft: #edf2ff;
+      --teal: #087f5b;
+      --teal-soft: #e6fcf5;
+      --amber: #c76b00;
+      --amber-soft: #fff4df;
+      --red: #c92a2a;
+      --red-soft: #fff0f0;
+      --violet: #7048e8;
+      --violet-soft: #f3f0ff;
+      --shadow: 0 20px 65px rgba(29,44,78,.11);
+      --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 0%, rgba(59,91,219,.12), transparent 34rem),
+        radial-gradient(circle at 92% 12%, rgba(8,127,91,.10), transparent 30rem),
+        var(--paper);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+      line-height: 1.55;
+    }
+    .shell { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
+    .hero { padding: 72px 0 34px; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 7px 12px; border: 1px solid #ccd6ff; border-radius: 999px;
+      color: #304bb6; background: rgba(237,242,255,.9);
+      font-size: 12px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 0 5px rgba(8,127,91,.12); }
+    h1 { margin: 22px 0 18px; max-width: 1020px; font-size: clamp(40px, 6.3vw, 74px); line-height: 1.01; letter-spacing: -.05em; }
+    .lead { max-width: 900px; margin: 0; color: var(--muted); font-size: clamp(18px, 2.2vw, 23px); }
+    .verdict {
+      display: grid; grid-template-columns: 1.25fr .75fr; margin-top: 34px;
+      overflow: hidden; border: 1px solid #cfd7e7; border-radius: var(--radius);
+      background: var(--card); box-shadow: var(--shadow);
+    }
+    .verdict-main { padding: 28px 30px; }
+    .verdict-main strong { display: block; margin-bottom: 8px; font-size: 21px; }
+    .verdict-side { display: grid; align-content: center; padding: 28px 30px; background: var(--teal-soft); border-left: 1px solid #c3efe0; }
+    .verdict-side b { color: var(--teal); font-size: 38px; line-height: 1; }
+    .verdict-side span { margin-top: 9px; color: #386d5d; font-size: 14px; }
+    section { padding: 38px 0; }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 28px; margin-bottom: 21px; }
+    h2 { margin: 0; font-size: clamp(28px, 4vw, 42px); line-height: 1.1; letter-spacing: -.035em; }
+    .section-head p { max-width: 580px; margin: 0; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+    .card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); box-shadow: 0 11px 32px rgba(35,48,80,.055); }
+    .pad { padding: 25px; }
+    .span-3 { grid-column: span 3; }
+    .span-4 { grid-column: span 4; }
+    .span-6 { grid-column: span 6; }
+    .span-12 { grid-column: span 12; }
+    .tag { display: inline-block; margin-bottom: 13px; padding: 5px 9px; border-radius: 8px; font-size: 11px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+    .tag.problem { color: var(--red); background: var(--red-soft); }
+    .tag.prompt { color: #304bb6; background: var(--blue-soft); }
+    .tag.code { color: var(--violet); background: var(--violet-soft); }
+    .tag.data { color: var(--amber); background: var(--amber-soft); }
+    .tag.done { color: var(--teal); background: var(--teal-soft); }
+    .card h3 { margin: 0 0 9px; font-size: 20px; letter-spacing: -.015em; }
+    .card p { margin: 0; color: var(--muted); }
+    .before-after { display: grid; grid-template-columns: 1fr 70px 1fr; gap: 16px; align-items: stretch; }
+    .lane { padding: 25px; border-radius: var(--radius); }
+    .lane.before { border: 1px solid #f3c2c2; background: var(--red-soft); }
+    .lane.after { border: 1px solid #bfe8da; background: var(--teal-soft); }
+    .lane h3 { margin: 0 0 17px; font-size: 22px; }
+    .lane ol { margin: 0; padding: 0; list-style: none; counter-reset: lane; }
+    .lane li { position: relative; padding: 13px 0 13px 40px; border-top: 1px solid rgba(80,90,110,.13); }
+    .lane li:first-child { border-top: 0; }
+    .lane li::before { counter-increment: lane; content: counter(lane); position: absolute; left: 0; top: 12px; display: grid; place-items: center; width: 25px; height: 25px; border-radius: 50%; background: white; font-weight: 900; font-size: 12px; }
+    .arrow { display: grid; place-items: center; color: #8290a7; font-size: 42px; font-weight: 900; }
+    .timeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; counter-reset: timeline; }
+    .step { position: relative; min-height: 206px; padding: 23px 20px; border: 1px solid var(--line); border-radius: 19px; background: var(--card); }
+    .step::before { counter-increment: timeline; content: counter(timeline); display: grid; place-items: center; width: 34px; height: 34px; margin-bottom: 18px; border-radius: 50%; color: white; background: var(--blue); font-weight: 900; }
+    .step:not(:last-child)::after { content: "→"; position: absolute; top: 25px; right: -20px; z-index: 2; color: #8b98ae; font-size: 24px; font-weight: 900; }
+    .step h3 { margin: 0 0 8px; font-size: 18px; }
+    .step p { margin: 0; color: var(--muted); font-size: 14px; }
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .metric { padding: 24px; }
+    .metric b { display: block; margin-bottom: 9px; font-size: clamp(32px, 4vw, 47px); line-height: 1; letter-spacing: -.04em; }
+    .metric span { color: var(--muted); font-size: 14px; }
+    .metric.good b { color: var(--teal); }
+    .metric.blue b { color: var(--blue); }
+    .metric.violet b { color: var(--violet); }
+    .metric.amber b { color: var(--amber); }
+    .checklist { display: grid; grid-template-columns: 1fr 1fr; gap: 0 30px; margin: 0; padding: 0; list-style: none; }
+    .checklist li { position: relative; padding: 14px 0 14px 32px; border-bottom: 1px solid var(--line); }
+    .checklist li::before { content: "✓"; position: absolute; left: 0; top: 14px; display: grid; place-items: center; width: 21px; height: 21px; border-radius: 50%; color: var(--teal); background: var(--teal-soft); font-weight: 900; font-size: 12px; }
+    .not-built { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .not-built .card { padding: 23px; }
+    .not-built h3 { display: flex; align-items: center; gap: 9px; }
+    .cross { display: inline-grid; place-items: center; width: 25px; height: 25px; border-radius: 50%; color: var(--red); background: var(--red-soft); font-size: 14px; }
+    .callout { margin-top: 16px; padding: 24px; border: 1px solid #f0d8a4; border-radius: var(--radius); background: var(--amber-soft); }
+    .callout strong { display: block; margin-bottom: 7px; color: #915400; font-size: 18px; }
+    .callout p { margin: 0; color: #735b36; }
+    footer { padding: 43px 0 64px; color: var(--muted); font-size: 13px; }
+    .footer-inner { display: flex; justify-content: space-between; gap: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
+    @media (max-width: 900px) {
+      .verdict { grid-template-columns: 1fr; }
+      .verdict-side { border-left: 0; border-top: 1px solid #c3efe0; }
+      .span-3, .span-4, .span-6 { grid-column: span 6; }
+      .timeline, .metrics { grid-template-columns: 1fr 1fr; }
+      .step:nth-child(2)::after { display: none; }
+      .not-built { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 650px) {
+      .shell { width: min(100% - 24px, 1180px); }
+      .hero { padding-top: 42px; }
+      .section-head { display: block; }
+      .section-head p { margin-top: 10px; }
+      .before-after { grid-template-columns: 1fr; }
+      .arrow { min-height: 44px; transform: rotate(90deg); }
+      .span-3, .span-4, .span-6 { grid-column: span 12; }
+      .timeline, .metrics, .checklist { grid-template-columns: 1fr; }
+      .step:not(:last-child)::after { display: none; }
+      .verdict-main, .verdict-side, .pad { padding: 21px; }
+      .footer-inner { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div class="shell">
+        <span class="eyebrow"><span class="dot"></span>Session recap · 30–31.08.2026</span>
+        <h1>Перестали терять звонок из-за одного пустого KPI</h1>
+        <p class="lead">За одну сессию мы выровняли аналитические промпты всего флота, исправили опасную логику валидатора, восстановили строго согласованные исторические звонки и доказали на реальной модели, что новая схема работает.</p>
+        <div class="verdict">
+          <div class="verdict-main">
+            <strong>Главный результат</strong>
+            Если модель не вернула второстепенный показатель, система больше не выбрасывает весь анализ и весь звонок. Она один раз просит модель дописать пропуск, а при повторной неудаче сохраняет всё полезное и показывает прочерк только в недоступном KPI.
+          </div>
+          <div class="verdict-side">
+            <b>433 / 433</b>
+            <span>согласованных исторических звонка восстановлены без нового dead letter</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Зачем вообще полезли</h2>
+          <p>Проблема была не только в качестве формулировок. В цепочке смешались три разных дефекта: дрейф промптов, слабый JSON-контракт и слишком жёсткая реакция на частичный ответ модели.</p>
+        </div>
+        <div class="grid">
+          <article class="card pad span-4">
+            <span class="tag problem">Проблема 1</span>
+            <h3>Промпты разъехались</h3>
+            <p>Пресеты, клиентские копии и старый шаблон перестали быть единым каноном. В одном общем файле отсутствовал перевод строки, поэтому два раздела склеивались при сборке.</p>
+          </article>
+          <article class="card pad span-4">
+            <span class="tag problem">Проблема 2</span>
+            <h3>Модель могла пропустить KPI</h3>
+            <p>Два показателя персонализации были фактически необязательными на транспортном уровне. Хороший по смыслу ответ мог прийти без одного ключа.</p>
+          </article>
+          <article class="card pad span-4">
+            <span class="tag problem">Проблема 3</span>
+            <h3>Валидатор выбрасывал всё</h3>
+            <p>Он не различал ядро анализа и второстепенный пробел. Один отсутствующий KPI превращал весь звонок в техническую ошибку вместо сохранения полезного результата.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Как было и как стало</h2>
+          <p>Изменился не смысл оценки, а поведение конвейера при неполном ответе модели.</p>
+        </div>
+        <div class="before-after">
+          <article class="lane before">
+            <h3>Раньше: один пробел ломал звонок</h3>
+            <ol>
+              <li>Модель возвращает почти полный анализ.</li>
+              <li>Одного второстепенного KPI нет.</li>
+              <li>Валидатор бракует весь JSON.</li>
+              <li>Анализ уходит в dead letter, звонок получает статус ошибки.</li>
+            </ol>
+          </article>
+          <div class="arrow" aria-hidden="true">→</div>
+          <article class="lane after">
+            <h3>Теперь: сохраняем максимум пользы</h3>
+            <ol>
+              <li>Контракт явно требует оба KPI.</li>
+              <li>После каскада проверяется их применимость.</li>
+              <li>При пропуске выполняется ровно один узкий repair.</li>
+              <li>Если repair не помог — ядро сохраняется, в одном KPI ставится «—».</li>
+            </ol>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Что сделали по шагам</h2>
+          <p>Работа шла от безопасного канона промптов к коду, затем к историческим данным и только после этого — к fleet-wide выпуску.</p>
+        </div>
+        <div class="timeline">
+          <article class="step">
+            <span class="tag prompt">Release A</span>
+            <h3>Вернули единый канон</h3>
+            <p>Синхронизировали пресеты с реальным флотом, удалили протухший ручной шаблон и добавили тест, который ловит новый дрейф автоматически.</p>
+          </article>
+          <article class="step">
+            <span class="tag code">Validator V1</span>
+            <h3>Разделили ошибку и пробел</h3>
+            <p>Сделали обязательный контракт, применимость после каскада, один repair и безопасный fallback без новых таблиц и клиентских экранов.</p>
+          </article>
+          <article class="step">
+            <span class="tag data">Replay</span>
+            <h3>Вернули историю</h3>
+            <p>Повторно обработали ровно 433 согласованных звонка — не сотни тысяч. Все завершились успешно, только два потребовали один транспортный retry.</p>
+          </article>
+          <article class="step">
+            <span class="tag done">Release B</span>
+            <h3>Обновили весь флот</h3>
+            <p>Нормализовали общую границу промпта и точечные правила нескольких клиентов, проверили реальной моделью и выпустили одним общим релизом.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Что доказали цифрами</h2>
+          <p>Тестирование было не ради ритуала: оно отвечало на конкретные вопросы — не теряем ли звонки, не сломали ли смысл KPI и совпадает ли прод с кандидатом.</p>
+        </div>
+        <div class="metrics">
+          <article class="card metric good"><b>433 / 433</b><span>исторических звонка восстановлены; новых dead letter не появилось</span></article>
+          <article class="card metric blue"><b>150 / 150</b><span>ответов контрольного прогона содержат оба обязательных KPI</span></article>
+          <article class="card metric violet"><b>0</b><span>смысловых регрессий в финальном ручном ревью</span></article>
+          <article class="card metric amber"><b>24 / 24</b><span>хэшей флота совпали с кандидатом в момент выпуска</span></article>
+        </div>
+        <div class="grid" style="margin-top:16px">
+          <article class="card pad span-6">
+            <span class="tag code">Контрольная клиника</span>
+            <h3>19,3% расхождений против 23,3% естественного шума</h3>
+            <p>Финальный кандидат оказался стабильнее повторного запуска старого промпта. Из 29 расхождений 28 были корректным заполнением ранее пропущенного ответа, одно — честно пограничным звонком.</p>
+          </article>
+          <article class="card pad span-6">
+            <span class="tag done">Production</span>
+            <h3>Новые звонки уже идут через новые правила</h3>
+            <p>После выпуска production начал сохранять анализы с новым хэшем. Последующее изменение одного промпта оказалось отдельным легитимным онбордингом, а не дрейфом этого релиза.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Бизнес-профит</h2>
+          <p>В сухом остатке это не «ещё один валидатор», а защита выручки и качества данных при нестабильном ответе LLM.</p>
+        </div>
+        <div class="card pad">
+          <ul class="checklist">
+            <li><b>Не теряем звонок:</b> один пустой KPI больше не превращает весь результат в ошибку.</li>
+            <li><b>Не врём клиенту:</b> если показатель неизвестен, сохраняем честный прочерк, а не выдумываем «нет».</li>
+            <li><b>Контролируем стоимость:</b> допускается максимум один дополнительный repair-запрос.</li>
+            <li><b>Сохраняем полезное ядро:</b> repair не может перезаписать уже валидные основные выводы.</li>
+            <li><b>Единые правила флота:</b> новые клиенты стартуют с того же канона, что и production.</li>
+            <li><b>Есть откат и аудит:</b> кандидаты, хэши, backup и результаты проверок сохранены.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Что сознательно не стали строить</h2>
+          <p>После архитектурного аудита из плана выкинули всё, что превращало узкую проблему в дорогую «платформу управления LLM».</p>
+        </div>
+        <div class="not-built">
+          <article class="card">
+            <h3><span class="cross">×</span> Без шайтан-машины</h3>
+            <p>Не добавляли четыре новые таблицы, сложную машину состояний, outbox и универсальный registry для будущих KPI.</p>
+          </article>
+          <article class="card">
+            <h3><span class="cross">×</span> Без массового перегона</h3>
+            <p>Не трогали сотни тысяч старых звонков. Replay был ограничен ровно 433 заранее проверенными строками.</p>
+          </article>
+          <article class="card">
+            <h3><span class="cross">×</span> Без лишней витрины</h3>
+            <p>Не показывали клиентам технические статусы валидатора и не меняли их отчёты без отдельного продуктового запроса.</p>
+          </article>
+        </div>
+        <div class="callout">
+          <strong>Итог одной фразой</strong>
+          <p>Мы сделали анализ устойчивым к частичному ответу модели, восстановили уже потерянные звонки и одновременно привели правила всего флота к единому проверяемому канону — без лишней архитектуры и без массовых повторных запросов.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell footer-inner">
+      <span>MedScore · sanitized implementation recap</span>
+      <span>Данные клиентов, звонки и внутренняя инфраструктура не публикуются</span>
+    </div>
+  </footer>
+</body>
+</html>
