@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Обезличенный fleet-аудит ручной перепроверки звонков MedScore">
+  <title>MedScore · Fleet-аудит перепроверки звонков</title>
+  <style>
+    :root {
+      --bg: #f4f2ec;
+      --paper: rgba(255,255,255,.88);
+      --ink: #17231f;
+      --muted: #63706b;
+      --line: #d9ddd7;
+      --green: #167052;
+      --green-soft: #e7f5ee;
+      --amber: #a45e09;
+      --amber-soft: #fff1d5;
+      --red: #b53b32;
+      --red-soft: #fde9e6;
+      --blue: #3563b8;
+      --blue-soft: #eaf0fb;
+      --black: #14201c;
+      --shadow: 0 22px 64px rgba(25, 40, 34, .10);
+      --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% -5%, rgba(22,112,82,.15), transparent 28rem),
+        radial-gradient(circle at 95% 4%, rgba(164,94,9,.12), transparent 25rem),
+        var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+      line-height: 1.55;
+    }
+    a { color: inherit; }
+    .shell { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
+    .hero { padding: 70px 0 34px; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 9px;
+      padding: 7px 12px; border: 1px solid #b9d9cd; border-radius: 999px;
+      color: #0f6046; background: rgba(231,245,238,.82);
+      font-size: 12px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 5px rgba(22,112,82,.13); }
+    h1 { margin: 22px 0 16px; max-width: 1010px; font-size: clamp(40px, 6vw, 74px); line-height: 1.01; letter-spacing: -.048em; }
+    .lead { max-width: 890px; margin: 0; color: var(--muted); font-size: clamp(18px, 2.3vw, 23px); }
+    .verdict {
+      display: grid; grid-template-columns: 1.4fr .6fr; margin-top: 32px;
+      overflow: hidden; border: 1px solid #d4d9d4; border-radius: var(--radius);
+      background: var(--paper); box-shadow: var(--shadow);
+    }
+    .verdict-main { padding: 29px 31px; }
+    .verdict-main strong { display: block; margin-bottom: 8px; font-size: 21px; }
+    .verdict-side { padding: 29px 31px; background: var(--red-soft); border-left: 1px solid #f1c8c3; }
+    .verdict-side b { display: block; color: var(--red); font-size: 42px; line-height: 1; }
+    .verdict-side span { display: block; margin-top: 9px; color: #7f4843; font-size: 14px; }
+    section { padding: 38px 0; }
+    .section-head { display: flex; justify-content: space-between; align-items: end; gap: 28px; margin-bottom: 20px; }
+    h2 { margin: 0; font-size: clamp(28px, 4vw, 42px); line-height: 1.08; letter-spacing: -.034em; }
+    .section-head p { max-width: 610px; margin: 0; color: var(--muted); }
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .metric { padding: 21px; border: 1px solid var(--line); border-radius: 18px; background: var(--paper); }
+    .metric b { display: block; font-size: 34px; line-height: 1; letter-spacing: -.03em; }
+    .metric span { display: block; margin-top: 9px; color: var(--muted); font-size: 13px; }
+    .metric.good b { color: var(--green); }
+    .metric.warn b { color: var(--amber); }
+    .metric.bad b { color: var(--red); }
+    .metric.info b { color: var(--blue); }
+    .flow-wrap { padding: 22px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); box-shadow: 0 12px 36px rgba(25,40,34,.055); }
+    .flow { display: grid; grid-template-columns: repeat(7, minmax(105px, 1fr)); gap: 22px; }
+    .step { position: relative; min-height: 160px; padding: 18px 16px; border: 1px solid var(--line); border-radius: 16px; background: white; }
+    .step::after { content: "→"; position: absolute; right: -19px; top: 22px; z-index: 2; color: #8d9893; font-size: 22px; font-weight: 900; }
+    .step:last-child::after { display: none; }
+    .num { display: grid; place-items: center; width: 29px; height: 29px; margin-bottom: 14px; border-radius: 50%; color: white; background: var(--green); font-size: 12px; font-weight: 900; }
+    .step h3 { margin: 0 0 7px; font-size: 16px; line-height: 1.25; }
+    .step p { margin: 0; color: var(--muted); font-size: 13px; }
+    .step.trap { border-color: #e7aeaa; background: var(--red-soft); box-shadow: 0 0 0 3px rgba(181,59,50,.07); }
+    .step.trap .num { background: var(--red); }
+    .step.tech { border-color: #e6cc9d; background: var(--amber-soft); }
+    .branch-note { margin-top: 16px; padding: 14px 16px; border-left: 4px solid var(--amber); border-radius: 10px; background: var(--amber-soft); color: #6f4a1e; font-size: 14px; }
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+    .card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); box-shadow: 0 10px 31px rgba(25,40,34,.05); }
+    .card.pad { padding: 24px; }
+    .span-4 { grid-column: span 4; }
+    .span-5 { grid-column: span 5; }
+    .span-7 { grid-column: span 7; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: span 12; }
+    .tag { display: inline-block; margin-bottom: 12px; padding: 5px 9px; border-radius: 8px; font-size: 11px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+    .tag.good { color: var(--green); background: var(--green-soft); }
+    .tag.warn { color: var(--amber); background: var(--amber-soft); }
+    .tag.bad { color: var(--red); background: var(--red-soft); }
+    .tag.info { color: var(--blue); background: var(--blue-soft); }
+    .card h3 { margin: 0 0 9px; font-size: 20px; letter-spacing: -.015em; }
+    .card p { margin: 0; color: var(--muted); }
+    .card ul { margin: 13px 0 0; padding-left: 19px; color: var(--muted); }
+    .card li + li { margin-top: 8px; }
+    .readiness { overflow: hidden; }
+    .readiness-row { display: grid; grid-template-columns: .75fr 1.35fr 1.5fr; }
+    .readiness-row > div { padding: 16px 18px; border-top: 1px solid var(--line); }
+    .readiness-row:first-child > div { border-top: 0; background: #ecefe9; color: var(--muted); font-size: 11px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+    .status { font-weight: 850; }
+    .status.good { color: var(--green); }
+    .status.bad { color: var(--red); }
+    .status.muted { color: var(--muted); }
+    .incident { display: grid; grid-template-columns: 1fr 54px 1fr 54px 1fr; align-items: stretch; }
+    .incident-step { padding: 23px; border: 1px solid var(--line); border-radius: 18px; background: var(--paper); }
+    .incident-step b { display: block; margin-bottom: 8px; font-size: 18px; }
+    .incident-step p { margin: 0; color: var(--muted); font-size: 14px; }
+    .incident-arrow { display: grid; place-items: center; color: #87928d; font-size: 24px; font-weight: 900; }
+    .finding { display: grid; grid-template-columns: 70px 1fr; gap: 18px; padding: 22px 0; border-bottom: 1px solid var(--line); }
+    .finding:last-child { border-bottom: 0; padding-bottom: 0; }
+    .prio { display: grid; place-items: center; width: 52px; height: 34px; border-radius: 10px; color: white; background: var(--red); font-weight: 900; }
+    .finding h3 { margin: 0 0 7px; font-size: 19px; }
+    .finding p { margin: 0; color: var(--muted); }
+    .plan { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; counter-reset: phase; }
+    .phase { position: relative; padding: 24px; border: 1px solid var(--line); border-radius: 19px; background: var(--paper); }
+    .phase::before { counter-increment: phase; content: "0" counter(phase); display: block; margin-bottom: 15px; color: var(--green); font-size: 13px; font-weight: 900; letter-spacing: .08em; }
+    .phase h3 { margin: 0 0 9px; font-size: 19px; }
+    .phase p { margin: 0; color: var(--muted); font-size: 14px; }
+    .callout { margin-top: 16px; padding: 22px 24px; border: 1px solid #e6c896; border-radius: 18px; background: var(--amber-soft); }
+    .callout strong { display: block; margin-bottom: 7px; color: #7d4b0c; font-size: 18px; }
+    .callout p { margin: 0; color: #74572f; }
+    .footer { padding: 42px 0 62px; color: var(--muted); font-size: 13px; }
+    .footer-inner { display: flex; justify-content: space-between; gap: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
+    @media (max-width: 980px) {
+      .metrics { grid-template-columns: 1fr 1fr; }
+      .flow { grid-template-columns: repeat(2, 1fr); }
+      .step::after { display: none; }
+      .span-4, .span-5, .span-7, .span-8 { grid-column: span 12; }
+      .plan { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 700px) {
+      .shell { width: min(100% - 24px, 1180px); }
+      .hero { padding-top: 42px; }
+      .verdict { grid-template-columns: 1fr; }
+      .verdict-side { border-left: 0; border-top: 1px solid #f1c8c3; }
+      .section-head { display: block; }
+      .section-head p { margin-top: 10px; }
+      .metrics, .flow { grid-template-columns: 1fr; }
+      .readiness-row { grid-template-columns: 1fr .55fr; }
+      .readiness-row > div:last-child { grid-column: 1 / -1; padding-top: 0; }
+      .readiness-row:first-child > div:last-child { display: none; }
+      .incident { grid-template-columns: 1fr; gap: 10px; }
+      .incident-arrow { transform: rotate(90deg); height: 32px; }
+      .footer-inner { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div class="shell">
+        <span class="eyebrow"><span class="dot"></span>Fleet audit · 31.08.2026</span>
+        <h1>Автомат работает. Ручная эстафета — нет.</h1>
+        <p class="lead">Перепроверка звонков технически жива и быстро завершает машинные раунды. Но путь от второго несогласия до руководителя держится на дополнительном ручном действии, которое не было выполнено ни разу во всём наблюдаемом флоте.</p>
+        <div class="verdict">
+          <div class="verdict-main">
+            <strong>Итог: система частично исправна</strong>
+            Воркеры, RLS, роли, запись решений и защитный технический маршрут работают. Не работает продуктовый контур передачи: готовые споры остаются закрытыми машиной и не становятся задачами руководителя.
+          </div>
+          <div class="verdict-side">
+            <b>0</b>
+            <span>явных передач руководителю за всю доступную историю аудита</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Срез production</h2>
+          <p>Обезличенная проверка конфигурации, ролей, PostgreSQL-состояний и runtime-мониторинга. Содержимое звонков и персональные данные не использовались.</p>
+        </div>
+        <div class="metrics">
+          <article class="metric good"><b>102</b><span>машинных результата завершены штатно</span></article>
+          <article class="metric good"><b>73 с</b><span>медиана завершения за последние 7 дней</span></article>
+          <article class="metric bad"><b>11</b><span>споров готовы к handoff, но не переданы</span></article>
+          <article class="metric warn"><b>3</b><span>технических исключения ждут MedScore</span></article>
+          <article class="metric info"><b>22</b><span>активных production-конфига с включённой фичей</span></article>
+          <article class="metric good"><b>19</b><span>клиник имеют живого клиентского руководителя</span></article>
+          <article class="metric bad"><b>3</b><span>активные клиники без клиентского manager</span></article>
+          <article class="metric good"><b>0</b><span>новых failed за последние 7 дней</span></article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Как задуман workflow</h2>
+          <p>Название «ручная перепроверка» вводит в заблуждение: человек включается не сразу. Сначала система дважды пытается решить спор автоматически.</p>
+        </div>
+        <div class="flow-wrap">
+          <div class="flow">
+            <article class="step"><span class="num">1</span><h3>Сотрудник жалуется</h3><p>В карточке звонка выбирает оценки и описывает несогласие.</p></article>
+            <article class="step"><span class="num">2</span><h3>Раунд робота №1</h3><p>Модель проверяет только заявленный скоуп и безопасно применяет допустимые правки.</p></article>
+            <article class="step"><span class="num">3</span><h3>Раунд робота №2</h3><p>После «Не согласен» модель обязана ответить на новый довод.</p></article>
+            <article class="step trap"><span class="num">4</span><h3>Отдельный handoff</h3><p>Сотрудник должен снова открыть звонок, написать ещё одно возражение и нажать «Передать руководителю».</p></article>
+            <article class="step"><span class="num">5</span><h3>Очередь manager</h3><p>Только теперь появляется статус clinic/escalated и красный счётчик.</p></article>
+            <article class="step"><span class="num">6</span><h3>Решение человека</h3><p>Руководитель слушает запись, подтверждает или исправляет оценку.</p></article>
+            <article class="step tech"><span class="num">7</span><h3>Запись или reconcile</h3><p>Воркеры применяют решение. Любая неоднозначность уходит в техническую очередь MedScore.</p></article>
+          </div>
+          <div class="branch-note"><b>Главная ловушка:</b> руководитель не видит раунды 1–3 в своей рабочей очереди. Пока сотрудник не выполнит шаг 4, для руководителя задачи буквально не существует.</div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Покрытие флота</h2>
+          <p>Feature flag и фактическая готовность — разные вещи. Конфиг может говорить «включено», хотя клиенту некому подать или принять ручную заявку.</p>
+        </div>
+        <div class="card readiness">
+          <div class="readiness-row"><div>Группа</div><div>Состояние</div><div>Вывод</div></div>
+          <div class="readiness-row"><div><b>19 клиник</b></div><div class="status good">Инфраструктурно готовы</div><div>Фича включена, есть хотя бы один активный клиентский руководитель. Продуктовый handoff всё равно требует исправления.</div></div>
+          <div class="readiness-row"><div><b>3 клиники</b></div><div class="status bad">Только автоматическая часть</div><div>Production-конфиг активен, но клиентских пользователей и manager нет. Ручной путь фактически недоступен.</div></div>
+          <div class="readiness-row"><div><b>1 отключённый клиент</b></div><div class="status muted">Вне активного runtime</div><div>Конфиг перепроверки присутствует, но основной клиентский runtime выключен.</div></div>
+          <div class="readiness-row"><div><b>1 demo tenant</b></div><div class="status muted">Намеренно без фичи</div><div>Cabinet-only окружение без production-конфига; это не дефект покрытия.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Почему руководитель увидел пустую очередь</h2>
+          <p>Права аккаунта были исправны. Пустой экран сложился из двух независимых переходов состояния.</p>
+        </div>
+        <div class="incident">
+          <article class="incident-step"><b>Шесть споров не переданы</b><p>Два машинных раунда закончились, но отдельный handoff сотрудником не выполнен. Они остались обычными done-результатами.</p></article>
+          <div class="incident-arrow">→</div>
+          <article class="incident-step"><b>Два решения ушли в защиту</b><p>Руководитель взял старые заявки, однако фактическая запись разошлась с намерением. Fail-safe перевёл их в технический reconcile.</p></article>
+          <div class="incident-arrow">→</div>
+          <article class="incident-step"><b>Manager queue = 0</b><p>Очередь показывает только clinic/escalated. Непереданные done и технические MedScore-состояния туда намеренно не входят.</p></article>
+        </div>
+        <div class="callout"><strong>Это не отказ авторизации</strong><p>Роль, tenant, активная сессия и RLS были корректны. Тот же аккаунт ранее принимал решения и просматривал журнал.</p></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Архитектурные выводы</h2>
+          <p>Кандидаты прошли disproof-проверку: безопасность записи, tenant isolation и технический fail-safe не являются причиной потери задач.</p>
+        </div>
+        <div class="card pad">
+          <div class="finding"><div class="prio">P1</div><div><h3>Handoff не является состоянием системы</h3><p>Готовность к руководителю вычисляется на лету из истории раундов, но не образует durable-задачу и не видна получателю. Поэтому 11 готовых споров существуют в данных, но отсутствуют в рабочей очереди.</p></div></div>
+          <div class="finding"><div class="prio">P1</div><div><h3>Включение фичи не проверяет готовность людей</h3><p>Feature gate принадлежит конфигу, а способность принять ручное решение — членству manager в PostgreSQL. Между ними нет общего readiness-инварианта; три активные клиники прошли активацию без клиентского руководителя.</p></div></div>
+          <div class="finding"><div class="prio">P1</div><div><h3>Технические исключения алертят, но не закрываются</h3><p>Монитор честно и регулярно видит три MedScore-кейса. Они остаются открытыми, то есть наблюдаемость работает, а операционный контур завершения — нет.</p></div></div>
+        </div>
+        <div class="grid" style="margin-top:16px">
+          <article class="card pad span-4"><span class="tag good">Не дефект</span><h3>Автоматический worker</h3><p>За неделю нет новых failed; очередь обрабатывается в пределах заявленного SLA.</p></article>
+          <article class="card pad span-4"><span class="tag good">Не дефект</span><h3>Права и RLS</h3><p>Роль перечитывается из базы на каждом запросе, а данные ограничиваются активной клиникой.</p></article>
+          <article class="card pad span-4"><span class="tag good">Не дефект</span><h3>Technical reconcile</h3><p>Увод неоднозначной записи из клинической очереди защищает KPI от повторного или ложного применения.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Что менять</h2>
+          <p>Без переписывания всей системы. Нужны одна продуктовая развилка, один readiness-инвариант и нормальное закрытие уже известных исключений.</p>
+        </div>
+        <div class="plan">
+          <article class="phase"><h3>Закрыть текущий хвост</h3><p>Разобрать три технических случая и выдать клиентские manager-аккаунты трём активным клиникам без ручного получателя.</p></article>
+          <article class="phase"><h3>Убрать невидимый handoff</h3><p>Рекомендуемый вариант: после второго неподтверждённого результата автоматически создавать clinic/escalated. Если требуется явное согласие — хранить отдельное durable awaiting_handoff и настойчиво уведомлять отправителя.</p></article>
+          <article class="phase"><h3>Сделать readiness проверяемым</h3><p>Fleet-preflight: effective call-review требует активного non-staff manager. Монитор отдельно считает готовые, но не переданные споры и возраст этого хвоста.</p></article>
+        </div>
+        <div class="callout"><strong>Критерий готовности</strong><p>Синтетический спор проходит весь путь: заявка → два машинных раунда → задача руководителя → решение → подтверждённая запись или видимый технический outcome. Проверка выполняется для каждой production-клиники, а не только на уровне unit-тестов.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="shell footer-inner">
+      <span>MedScore · обезличенный architecture &amp; production audit</span>
+      <span>Snapshot: 31.08.2026, Asia/Yekaterinburg</span>
+    </div>
+  </footer>
+</body>
+</html>
