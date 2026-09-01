@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Результат bounded challenge-pass справочника причин обращения MedScore">
-  <title>MedScore — результат challenge-pass demand taxonomy</title>
+  <meta name="description" content="Подписанный baseline причин обращения и реализация demand-фасетов MedScore">
+  <title>MedScore — baseline 22/78 и demand-фасеты</title>
   <style>
     :root {
       --night:#10211c; --ink:#183128; --muted:#64756e; --paper:#f3f1e9;
@@ -57,24 +57,27 @@
     .stop{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}.stop .panel{box-shadow:none}.stop ul{margin:0;padding-left:20px;color:var(--muted)}
     .season{padding:25px;border:1px solid #c4d8e9;border-radius:20px;background:var(--blue-bg);color:#285274}.season h3{margin:0 0 7px}.season p{margin:0}
     .council{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.council .panel{box-shadow:none}.council b{display:block;color:var(--green);font:700 34px Georgia,serif}.council span{color:var(--muted);font-size:13px}
+    .flow{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;align-items:stretch}.flow article{position:relative;padding:20px 16px;border:1px solid var(--line);border-radius:17px;background:var(--card)}
+    .flow article:not(:last-child)::after{content:"→";position:absolute;right:-10px;top:50%;z-index:2;width:20px;height:20px;display:grid;place-items:center;border-radius:50%;background:var(--paper);color:var(--green);font-weight:900;transform:translateY(-50%)}
+    .flow b{display:block;margin-bottom:7px;font-size:14px}.flow span{color:var(--muted);font-size:12px}.contract{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}.contract .panel{box-shadow:none}.contract code{font-weight:800;color:var(--green)}
     footer{padding:44px 0 68px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
-    @media(max-width:900px){nav{display:none}.metrics,.method{grid-template-columns:1fr 1fr}.method article:nth-child(2)::after{display:none}.head{grid-template-columns:1fr;gap:14px}.layers{grid-template-columns:repeat(3,1fr)}.council{grid-template-columns:1fr}}
-    @media(max-width:640px){.shell{width:min(100% - 22px,1160px)}.hero{padding-top:50px}.metrics,.method,.evidence,.layers,.stop{grid-template-columns:1fr}.method article:not(:last-child)::after{content:"↓";right:50%;top:auto;bottom:-24px;transform:translateX(50%)}.versus{grid-template-columns:1fr}.vs{min-height:34px}.protocol article{grid-template-columns:42px 1fr}.protocol .tag{grid-column:2;justify-self:start}.verdict{grid-template-columns:1fr}.verdict-icon{width:48px;height:48px}}
+    @media(max-width:900px){nav{display:none}.metrics,.method{grid-template-columns:1fr 1fr}.method article:nth-child(2)::after{display:none}.head{grid-template-columns:1fr;gap:14px}.layers{grid-template-columns:repeat(3,1fr)}.flow{grid-template-columns:1fr 1fr}.flow article::after{display:none}.council{grid-template-columns:1fr}}
+    @media(max-width:640px){.shell{width:min(100% - 22px,1160px)}.hero{padding-top:50px}.metrics,.method,.evidence,.layers,.stop,.flow,.contract{grid-template-columns:1fr}.method article:not(:last-child)::after{content:"↓";right:50%;top:auto;bottom:-24px;transform:translateX(50%)}.versus{grid-template-columns:1fr}.vs{min-height:34px}.protocol article{grid-template-columns:42px 1fr}.protocol .tag{grid-column:2;justify-self:start}.verdict{grid-template-columns:1fr}.verdict-icon{width:48px;height:48px}}
   </style>
 </head>
 <body>
-  <header class="top"><div class="shell"><div class="brand">MedScore · Challenge complete</div><nav><a href="#audit">Метод</a><a href="#facets">Фасеты</a><a href="#protocol">Результат</a><a href="#stop">Граница</a></nav></div></header>
+  <header class="top"><div class="shell"><div class="brand">MedScore · Signed &amp; implemented</div><nav><a href="#audit">Метод</a><a href="#facets">Фасеты</a><a href="#architecture">Контур</a><a href="#protocol">Статус</a><a href="#stop">Граница</a></nav></div></header>
   <main>
     <section class="hero"><div class="shell">
-      <div class="eyebrow">Bounded challenge · два представления · два candidate batch · adjudication</div>
-      <h1>22 / 78 выдержали проверку.</h1>
-      <p class="lead">Повторный discovery на уже извлечённых фразах завершён. Он не нашёл новой причины, которая одновременно проходит support, stability и business-actionability. Зато показал отдельный слой данных — цену, наличие, запись, срочность и канал обращения.</p>
-      <div class="verdict"><div class="verdict-icon">✓</div><div><strong>Решение: сохранить taxonomy 22/78 как «Лето 2026»</strong><span>Не раздувать unknown и не перезапускать 96 тысяч звонков. Следующую полезную глубину строить отдельными фасетами поверх сохранённой request-фразы.</span></div></div>
+      <div class="eyebrow">Baseline подписан · отдельная проекция реализована · production не затронут</div>
+      <h1>22 / 78 подписаны. Глубина добавлена без каши.</h1>
+      <p class="lead">Bounded discovery не нашёл новой устойчивой причины, зато обнаружил отдельный слой спроса. Семь коммерческих и операционных фасетов реализованы поверх уже сохранённой фразы — без повторного чтения звонков и без смешивания с медицинской иерархией.</p>
+      <div class="verdict"><div class="verdict-icon">✓</div><div><strong>Решение зафиксировано в feature-ветке</strong><span>Taxonomy «Лето 2026» подписана. Причина остаётся одной модальной парой, фасеты объединяются по всем звонкам обращения. Backfill, миграция production и deployment не выполнялись.</span></div></div>
       <div class="metrics">
-        <div class="metric"><b>66 564</b><span>предметных обращений — первичная единица веса challenge</span></div>
-        <div class="metric"><b>45</b><span>кластеров пережили seed, cross-view, confirmation и clinic gates</span></div>
-        <div class="metric"><b>0</b><span>новых actionable categories/details после adjudication</span></div>
-        <div class="metric"><b>22 / 78</b><span>категории / именованные детали итогового летнего baseline</span></div>
+        <div class="metric"><b>22 / 78</b><span>подписанные категории / именованные детали летнего baseline</span></div>
+        <div class="metric"><b>7</b><span>независимых demand-фасетов в версионируемом контракте</span></div>
+        <div class="metric"><b>74 786</b><span>applicable result rows дали точное совпадение старой и runtime-логики</span></div>
+        <div class="metric"><b>0</b><span>расхождений extractor parity и ноль production-записей</span></div>
       </div>
     </div></section>
 
@@ -116,33 +119,51 @@
       </div>
     </div></section>
 
+    <section id="architecture"><div class="shell">
+      <div class="head"><h2>Как это проходит через систему</h2><p>Приватный текст остаётся в исходном хранилище. В кабинет, отчёты и XLSX выходят только контролируемые ID и их подписанные русские labels.</p></div>
+      <div class="flow">
+        <article><b>1 · Private phrase</b><span>Короткая фраза уже лежит в SQLite. Повторный LLM-прогон не нужен.</span></article>
+        <article><b>2 · Versioned rules</b><span>Taxonomy v1 содержит exact phrase map и семь детерминированных regex-наборов.</span></article>
+        <article><b>3 · Controlled tuple</b><span>Warehouse получает category, detail, species, facet array и identity версии.</span></article>
+        <article><b>4 · Appeal union</b><span>Причина выбирается модально, фасеты объединяются по всем звонкам суток.</span></article>
+        <article><b>5 · Surfaces</b><span>Лента, карточка, demand report, monthly report и XLSX показывают labels.</span></article>
+      </div>
+      <div class="contract">
+        <div class="panel"><h3><code>[]</code> — обработано</h3><p>Проекция выполнена, но ни одно из семи условий обращения не найдено.</p></div>
+        <div class="panel"><h3><code>NULL</code> — данных нет</h3><p>Исходная demand-проекция отсутствует или не прошла fail-closed validation.</p></div>
+      </div>
+      <div class="callout">Одно обращение может одновременно быть «вакцинация + цена + запись + срочно». Поэтому доли фасетов не обязаны складываться в 100% — это нормальная multi-label семантика.</div>
+    </div></section>
+
     <section id="protocol"><div class="shell">
-      <div class="head"><h2>Что именно завершено</h2><p>Challenge исполнил bounded-контракт и остановился после второго пустого по actionability batch. Никакой массовой переразметки звонков не потребовалось.</p></div>
+      <div class="head"><h2>Что именно завершено</h2><p>Challenge остановился по заранее заданному правилу, а полезный следующий слой доведён до проверенного feature-кода. Массовой переразметки звонков не потребовалось.</p></div>
       <div class="protocol">
         <article><div><strong>Frozen challenge corpus</strong><span>Веса по обращениям, hash-split, privacy filter и фиксированные версии модели/seed.</span></div><span class="tag">Готово</span></article>
         <article><div><strong>Alternative discovery</strong><span>Lexical-LSA и multilingual semantic view на трёх разрешениях.</span></div><span class="tag">Готово</span></article>
         <article><div><strong>Stability gates</strong><span>Seed, cross-view, confirmation split и clinic holdout сократили 118 групп до 45.</span></div><span class="tag">Готово</span></article>
         <article><div><strong>Unknown-only batch</strong><span>7 255 unknown-обращений дали ноль новых actionable concepts.</span></div><span class="tag">Стоп</span></article>
-        <article><div><strong>Adjudication</strong><span>30 агрегированных пакетов: existing detail, expected overlap, facet или algorithmic mix.</span></div><span class="tag">На подпись</span></article>
+        <article><div><strong>Adjudication и baseline</strong><span>30 агрегированных пакетов разобраны; taxonomy 22/78 подписана как summer_2026.</span></div><span class="tag">Подписано</span></article>
+        <article><div><strong>Demand facets</strong><span>Семь rules, controlled array, appeal union, кабинет, monthly report и XLSX.</span></div><span class="tag">Реализовано</span></article>
+        <article><div><strong>Verification</strong><span>Точное совпадение на 74 786 applicable rows; затронутый test-suite и SQL boundary зелёные.</span></div><span class="tag">Проверено</span></article>
       </div>
     </div></section>
 
     <section id="stop"><div class="shell">
       <div class="head"><h2>Что теперь можно утверждать</h2><p>Stop-rule выполнен именно для зафиксированного летнего корпуса. Accuracy mapping и будущая сезонность остаются отдельными вопросами.</p></div>
       <div class="stop">
-        <div class="panel"><h3>Можно утверждать</h3><ul><li>22/78 выдержали альтернативный discovery;</li><li>unknown не содержит крупного устойчивого нового класса;</li><li>сырой full-call rerun сейчас не обоснован;</li><li>следующая ценность извлекается из сохранённых фраз;</li><li>runtime остаётся детерминированным.</li></ul></div>
-        <div class="panel"><h3>Нельзя утверждать</h3><ul><li>что это годовая taxonomy;</li><li>что machine agreement равен accuracy;</li><li>что 15% rule overlap — 15% ошибок;</li><li>что каждый semantic cluster — понятие;</li><li>что species с 30% пропусков закрыт.</li></ul></div>
+        <div class="panel"><h3>Можно утверждать</h3><ul><li>22/78 выдержали альтернативный discovery и подписаны;</li><li>unknown не содержит крупного устойчивого нового класса;</li><li>сырой full-call rerun сейчас не обоснован;</li><li>следующая ценность извлекается из сохранённых фраз;</li><li>runtime-проекция фасетов детерминирована и проверена.</li></ul></div>
+        <div class="panel"><h3>Пока нельзя утверждать</h3><ul><li>что это годовая taxonomy;</li><li>что machine agreement равен accuracy;</li><li>что species с 30% пропусков закрыт;</li><li>что три исходных not_done разобраны;</li><li>что схема уже мигрирована или данные появились в production.</li></ul></div>
       </div>
       <div style="height:18px"></div>
       <div class="season"><h3>Граница результата</h3><p>Данные только за лето 2026. Challenge доказывает насыщение этого frozen corpus по заданным продуктовым порогам, но не заменяет temporal holdout другого сезона. Поэтому edition честно остаётся «Лето 2026».</p></div>
     </div></section>
 
     <section><div class="shell">
-      <div class="head"><h2>Что выносится на подпись</h2><p>Главная taxonomy не раздувается. Отдельно фиксируется следующая продуктовая возможность — фасеты спроса без повторного чтения звонков.</p></div>
+      <div class="head"><h2>Что зафиксировано</h2><p>Главная taxonomy не раздувается. Следующая продуктовая глубина реализована отдельной осью и ждёт только обычных release-gates и явной команды на production.</p></div>
       <div class="council">
-        <div class="panel"><b>22/78</b><span>сохранить как подписываемый baseline `summer_2026`</span></div>
-        <div class="panel"><b>0</b><span>полных raw-call rerun: extraction gate не сработал</span></div>
-        <div class="panel"><b>7</b><span>детерминированных фасетов для отдельной следующей проекции</span></div>
+        <div class="panel"><b>22/78</b><span>подписанный baseline `summer_2026`</span></div>
+        <div class="panel"><b>0</b><span>полных raw-call rerun и production-записей</span></div>
+        <div class="panel"><b>7</b><span>детерминированных фасетов в feature-реализации</span></div>
       </div>
     </div></section>
   </main>
