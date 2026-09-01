@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Обезличенный аудит месячного отчёта MedScore и концепция версии 3">
+  <title>MedScore · Аудит месячного отчёта</title>
+  <style>
+    :root {
+      --night: #12221c;
+      --ink: #20312b;
+      --muted: #68756f;
+      --paper: #fffdfa;
+      --canvas: #f2f0e9;
+      --line: #d9ddd6;
+      --green: #167053;
+      --green-2: #2b9370;
+      --green-soft: #e5f3ed;
+      --amber: #9d5d0d;
+      --amber-soft: #fff0d2;
+      --red: #b33e35;
+      --red-soft: #fbe8e4;
+      --blue: #3e62ae;
+      --blue-soft: #e9eefb;
+      --shadow: 0 22px 60px rgba(25, 42, 35, .10);
+      --radius: 24px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 4% 0, rgba(31, 134, 98, .16), transparent 28rem),
+        radial-gradient(circle at 100% 6%, rgba(180, 117, 26, .12), transparent 27rem),
+        var(--canvas);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+      line-height: 1.55;
+    }
+    a { color: inherit; }
+    .shell { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
+    .hero { padding: 70px 0 38px; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 9px;
+      padding: 7px 12px; border: 1px solid #b6d8cb; border-radius: 999px;
+      color: #0d6045; background: rgba(229, 243, 237, .86);
+      font-size: 12px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 5px rgba(22,112,83,.13); }
+    h1 { margin: 22px 0 16px; max-width: 1000px; font-size: clamp(40px, 6.2vw, 76px); line-height: 1; letter-spacing: -.05em; }
+    .lead { max-width: 920px; margin: 0; color: var(--muted); font-size: clamp(18px, 2.3vw, 23px); }
+    .verdict {
+      display: grid; grid-template-columns: 1.45fr .55fr; margin-top: 32px;
+      overflow: hidden; border: 1px solid #d2d8d2; border-radius: var(--radius);
+      background: rgba(255, 253, 250, .92); box-shadow: var(--shadow);
+    }
+    .verdict-main { padding: 29px 31px; }
+    .verdict-main strong { display: block; margin-bottom: 8px; font-size: 22px; }
+    .verdict-side { padding: 29px 31px; background: var(--amber-soft); border-left: 1px solid #ead0a4; }
+    .verdict-side b { display: block; color: var(--amber); font-size: 42px; line-height: 1; }
+    .verdict-side span { display: block; margin-top: 9px; color: #745123; font-size: 14px; }
+    section { padding: 39px 0; }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 28px; margin-bottom: 20px; }
+    h2 { margin: 0; max-width: 700px; font-size: clamp(29px, 4vw, 44px); line-height: 1.07; letter-spacing: -.038em; }
+    .section-head p { max-width: 590px; margin: 0; color: var(--muted); }
+    .flow-wrap { padding: 24px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(255,253,250,.9); box-shadow: 0 12px 40px rgba(25,42,35,.06); }
+    .flow { display: grid; grid-template-columns: repeat(5, minmax(125px, 1fr)); gap: 24px; }
+    .step { position: relative; min-height: 160px; padding: 19px; border: 1px solid var(--line); border-radius: 18px; background: white; }
+    .step::after { content: "→"; position: absolute; right: -20px; top: 22px; z-index: 2; color: #8c9792; font-size: 23px; font-weight: 900; }
+    .step:last-child::after { display: none; }
+    .num { display: grid; place-items: center; width: 30px; height: 30px; margin-bottom: 15px; border-radius: 50%; color: white; background: var(--green); font-size: 12px; font-weight: 900; }
+    .step h3 { margin: 0 0 7px; font-size: 17px; line-height: 1.24; }
+    .step p { margin: 0; color: var(--muted); font-size: 13px; }
+    .step.risk { border-color: #e1b574; background: var(--amber-soft); }
+    .step.risk .num { background: var(--amber); }
+    .note { margin-top: 16px; padding: 15px 17px; border-left: 4px solid var(--amber); border-radius: 11px; background: var(--amber-soft); color: #69491f; font-size: 14px; }
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+    .card { border: 1px solid var(--line); border-radius: var(--radius); background: rgba(255,253,250,.92); box-shadow: 0 10px 32px rgba(25,42,35,.05); }
+    .pad { padding: 24px; }
+    .span-3 { grid-column: span 3; }
+    .span-4 { grid-column: span 4; }
+    .span-5 { grid-column: span 5; }
+    .span-7 { grid-column: span 7; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: span 12; }
+    .tag { display: inline-block; margin-bottom: 12px; padding: 5px 9px; border-radius: 8px; font-size: 11px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+    .tag.good { color: var(--green); background: var(--green-soft); }
+    .tag.warn { color: var(--amber); background: var(--amber-soft); }
+    .tag.bad { color: var(--red); background: var(--red-soft); }
+    .tag.info { color: var(--blue); background: var(--blue-soft); }
+    .card h3 { margin: 0 0 9px; font-size: 20px; letter-spacing: -.018em; }
+    .card p { margin: 0; color: var(--muted); }
+    .card ul { margin: 13px 0 0; padding-left: 19px; color: var(--muted); }
+    .card li + li { margin-top: 7px; }
+    .risk-card { min-height: 250px; }
+    .risk-card .index { color: var(--red); font-size: 13px; font-weight: 900; letter-spacing: .08em; }
+    .risk-card h3 { margin-top: 15px; }
+    .risk-card code { padding: 2px 6px; border-radius: 6px; color: #87443f; background: var(--red-soft); font: inherit; font-size: 13px; }
+    .priority { overflow: hidden; }
+    .priority-row { display: grid; grid-template-columns: .72fr 1.25fr 1.35fr 1.55fr; }
+    .priority-row > div { padding: 17px 18px; border-top: 1px solid var(--line); }
+    .priority-row:first-child > div { border-top: 0; background: #e9ece7; color: var(--muted); font-size: 11px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+    .state { font-weight: 850; }
+    .state.now { color: var(--green); }
+    .state.next { color: var(--blue); }
+    .state.later { color: var(--amber); }
+    .state.stop { color: var(--red); }
+    .report-shell { padding: 18px; background: var(--night); border-radius: 28px; box-shadow: var(--shadow); }
+    .report-top { display: flex; justify-content: space-between; align-items: center; gap: 18px; padding: 8px 6px 20px; color: white; }
+    .report-brand b { display: block; font-size: 20px; }
+    .report-brand span, .report-period { color: #aebdb7; font-size: 13px; }
+    .report-grid { display: grid; grid-template-columns: 1.55fr .85fr; gap: 14px; }
+    .report-panel { padding: 21px; border-radius: 18px; background: #f8f7f2; }
+    .report-panel h3 { margin: 0 0 10px; font-size: 18px; }
+    .report-panel p { margin: 0; color: var(--muted); font-size: 14px; }
+    .report-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 16px; }
+    .mini { padding: 13px; border: 1px solid var(--line); border-radius: 13px; background: white; }
+    .mini b { display: block; color: var(--green); font-size: 22px; }
+    .mini span { color: var(--muted); font-size: 11px; }
+    .actions { margin: 0; padding-left: 20px; color: var(--muted); font-size: 14px; }
+    .actions li + li { margin-top: 10px; }
+    .action-link { display: inline-block; margin-top: 15px; padding: 9px 12px; border-radius: 10px; color: white; background: var(--green); font-size: 12px; font-weight: 800; }
+    .full { grid-column: 1 / -1; }
+    .callback { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
+    .callback div { position: relative; padding: 14px 12px; border-radius: 13px; color: #254038; background: var(--green-soft); font-size: 12px; }
+    .callback div::after { content: "→"; position: absolute; right: -9px; top: 13px; color: var(--green); font-weight: 900; }
+    .callback div:last-child::after { display: none; }
+    .callback b { display: block; font-size: 19px; }
+    .trust { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+    .trust span { padding: 6px 9px; border-radius: 999px; color: #40544c; background: #e7e9e4; font-size: 11px; }
+    .formula { overflow: hidden; }
+    .formula-row { display: grid; grid-template-columns: 1fr 1.35fr 1.6fr; }
+    .formula-row > div { padding: 17px 18px; border-top: 1px solid var(--line); }
+    .formula-row:first-child > div { border-top: 0; background: #e9ece7; color: var(--muted); font-size: 11px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+    .formula-row b { font-size: 15px; }
+    .plan { display: grid; grid-template-columns: repeat(5, 1fr); gap: 13px; counter-reset: phase; }
+    .phase { padding: 22px; border: 1px solid var(--line); border-radius: 19px; background: rgba(255,253,250,.92); }
+    .phase::before { counter-increment: phase; content: "0" counter(phase); display: block; margin-bottom: 15px; color: var(--green); font-size: 13px; font-weight: 900; letter-spacing: .08em; }
+    .phase h3 { margin: 0 0 8px; font-size: 18px; }
+    .phase p { margin: 0; color: var(--muted); font-size: 13px; }
+    .dont { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+    .dont article { padding: 21px; border: 1px solid #e6bbb6; border-radius: 18px; background: var(--red-soft); }
+    .dont b { display: block; margin-bottom: 7px; color: #863c36; }
+    .dont p { margin: 0; color: #78514d; font-size: 14px; }
+    .footer { padding: 43px 0 64px; color: var(--muted); font-size: 13px; }
+    .footer-inner { display: flex; justify-content: space-between; gap: 20px; padding-top: 21px; border-top: 1px solid var(--line); }
+    @media (max-width: 980px) {
+      .flow { grid-template-columns: repeat(2, 1fr); }
+      .step::after { display: none; }
+      .span-3 { grid-column: span 6; }
+      .span-4, .span-5, .span-7, .span-8 { grid-column: span 12; }
+      .plan { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 720px) {
+      .shell { width: min(100% - 24px, 1180px); }
+      .hero { padding-top: 43px; }
+      .verdict, .report-grid { grid-template-columns: 1fr; }
+      .verdict-side { border-left: 0; border-top: 1px solid #ead0a4; }
+      .section-head { display: block; }
+      .section-head p { margin-top: 10px; }
+      .flow, .plan, .dont { grid-template-columns: 1fr; }
+      .span-3 { grid-column: span 12; }
+      .priority-row, .formula-row { grid-template-columns: 1fr; }
+      .priority-row:first-child, .formula-row:first-child { display: none; }
+      .priority-row > div, .formula-row > div { border-top: 0; padding-top: 5px; }
+      .priority-row, .formula-row { padding: 14px 16px; border-top: 1px solid var(--line); }
+      .report-kpis { grid-template-columns: 1fr; }
+      .callback { grid-template-columns: 1fr 1fr; }
+      .callback div::after { display: none; }
+      .footer-inner { display: block; }
+    }
+    @media print {
+      body { background: white; }
+      .card, .flow-wrap, .verdict, .report-shell { box-shadow: none; }
+      section { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div class="shell">
+        <span class="eyebrow"><span class="dot"></span>Product audit · 01.09.2026</span>
+        <h1>Отчёт пора превратить из витрины в центр действий.</h1>
+        <p class="lead">У MedScore появились сильные новые данные: история обращений, персонализация, обработка пропущенных и скорость ответа. Но добавлять их поверх старого источника опасно — сначала отчёт должен читать тот же снимок данных и ту же оценочную карту, что и кабинет.</p>
+        <div class="verdict">
+          <div class="verdict-main">
+            <strong>Решение: делать v3, но начинать с доверия к данным</strong>
+            Первый релиз — единый warehouse-снимок, честное покрытие и parity MedScore. Затем можно включить историю обращений, персонализацию и качество данных. Callback и скорость ответа становятся клиентскими KPI только после прохождения собственных coverage-гейтов.
+          </div>
+          <div class="verdict-side">
+            <b>P0</b>
+            <span>источник, полнота и формула балла должны быть исправлены до массовой отправки</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Как отчёт устроен сейчас</h2>
+          <p>Канонический артефакт — адаптивный HTML, а не PDF. Он рассчитывается, получает проверенный AI-комментарий и уходит администратору для ручной пересылки клиенту.</p>
+        </div>
+        <div class="flow-wrap">
+          <div class="flow">
+            <article class="step risk"><span class="num">1</span><h3>Google Sheets</h3><p>Старый контракт звонка. Многие новые поля и источники доказательств сюда не входят.</p></article>
+            <article class="step"><span class="num">2</span><h3>Расчёт метрик</h3><p>Воронка, KPI, команда, потери, возражения, динамика и benchmark.</p></article>
+            <article class="step"><span class="num">3</span><h3>AI-нарратив</h3><p>Формулирует выводы; отдельный этап проверяет числа и запрещённые утверждения.</p></article>
+            <article class="step"><span class="num">4</span><h3>HTML-отчёт</h3><p>Брендированный, адаптивный, доступен как файл и в защищённом кабинете.</p></article>
+            <article class="step"><span class="num">5</span><h3>Доставка</h3><p>Сначала администратору в Telegram, затем клиенту вручную.</p></article>
+          </div>
+          <div class="note"><b>Слабое звено — первый шаг.</b> Кабинет уже опирается на более богатый warehouse-контур, а месячный отчёт продолжает считать по старому Sheet-контракту. Два интерфейса могут показать разные ответы на один вопрос.</div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Что клиент уже получал</h2>
+          <p>Последний фактический клиентский пакет собран за июль. Августовского production-пакета ещё нет; найденный августовский артефакт — отдельный синтетический demo.</p>
+        </div>
+        <div class="grid">
+          <article class="card pad span-3"><span class="tag good">Уже в v2</span><h3>Итог и основные KPI</h3><p>Главное за месяц, конверсия, записи, звонки, пропущенные, вежливость и сервисные обращения.</p></article>
+          <article class="card pad span-3"><span class="tag good">Уже в v2</span><h3>Динамика и отдача</h3><p>Тренд конверсии, сервисная отдача и текущая упрощённая воронка от всех звонков к записи.</p></article>
+          <article class="card pad span-3"><span class="tag good">Уже в v2</span><h3>Команда</h3><p>Таблица операторов, MedScore по старым пяти входам, дельты, лучший результат и зона внимания.</p></article>
+          <article class="card pad span-3"><span class="tag good">Уже в v2</span><h3>Причины и действия</h3><p>Потери, точки роста, возражения, сетевой benchmark и план действий на следующий месяц.</p></article>
+        </div>
+        <div class="note"><b>Не выдавать повторно за новинки.</b> Большая часть визуального v2, анализ потерь и benchmark уже попали в июльские HTML. Реально новые продуктовые данные перечислены ниже; упрощённая воронка в текущем коде появилась уже после сборки июльских артефактов.</div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Четыре риска перед ближайшей рассылкой</h2>
+          <p>Это не косметика. Каждый пункт способен сделать формально успешный отчёт неполным или несопоставимым с кабинетом.</p>
+        </div>
+        <div class="grid">
+          <article class="card pad span-3 risk-card"><span class="index">P0 · SOURCE</span><h3>Отчёт читает устаревший источник</h3><p>Новые звонки у части активных клиентов больше не обязаны попадать в Sheets. При этом генератор всё равно выбирает активного клиента и может собрать пустой или частичный период.</p></article>
+          <article class="card pad span-3 risk-card"><span class="index">P0 · QUALITY</span><h3>«100% обработано» сейчас не доказано</h3><p>Показатель качества равен числу найденных строк, а не ожидаемому объёму источника. Ноль из нуля тоже способен выглядеть как полное покрытие.</p></article>
+          <article class="card pad span-3 risk-card"><span class="index">P0 · SCORE</span><h3>MedScore расходится с кабинетом</h3><p>Текущая карта уже содержит новые KPI персонализации, а отчёт передаёт только старый набор и перенормирует веса. Название балла остаётся тем же, формула — уже нет.</p></article>
+          <article class="card pad span-3 risk-card"><span class="index">P0 · SAMPLING</span><h3>Выборочный анализ блокирует отчёт</h3><p>Если период содержит sampling provenance, старый reader не умеет честно восстановить знаменатели и останавливает выпуск. Warehouse уже знает, как считать такие метрики.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Дрейф уже затронул текущие метрики</h2>
+          <p>Переезд источника нужен не только ради новых карточек. Несколько старых формул расходятся с каноническими правилами warehouse уже сейчас.</p>
+        </div>
+        <div class="grid">
+          <article class="card pad span-4"><span class="tag bad">Исправить</span><h3>«Все звонки»</h3><p>Сейчас это строки анализа из листа, а не весь поток телефонии. Нужны канонические contact buckets и явное название знаменателя.</p></article>
+          <article class="card pad span-4"><span class="tag bad">Исправить</span><h3>Доля пропущенных</h3><p>Дедуп по номеру за весь месяц способен удалить отдельный нормальный звонок после пропуска. Сопоставление должно идти на уровне события.</p></article>
+          <article class="card pad span-4"><span class="tag bad">Исправить</span><h3>Потери и возражения</h3><p>Неклассифицированные потери исчезают, а значение «нет» может попасть в возражения. Нужны unknown bucket и единая нормализация.</p></article>
+          <article class="card pad span-4"><span class="tag warn">Безопасность</span><h3>Payload для narrator</h3><p>Свободные детали и имена операторов не должны уходить во внешний LLM. Только закрытые taxonomy ID, агрегаты и локальная подстановка псевдонимов.</p></article>
+          <article class="card pad span-4"><span class="tag warn">Целостность</span><h3>Fingerprint нарратива</h3><p>Текущий хеш не покрывает все секции, поэтому после изменения операторов, потерь или тренда может остаться старый комментарий. Хешировать нужно весь канонический payload.</p></article>
+          <article class="card pad span-4"><span class="tag info">Продукт</span><h3>Нарратив по секциям</h3><p>Лимит общего top-N почти полностью съедают методология и конверсия. Для команды, возражений и benchmark нужны отдельные обязательные briefs.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Что добавлять и когда</h2>
+          <p>Приоритет определяется не эффектностью карточки, а клиентской пользой, готовностью источника и возможностью честно объяснить ограничения.</p>
+        </div>
+        <div class="card priority">
+          <div class="priority-row"><div>Этап</div><div>Функция</div><div>Что увидит клиент</div><div>Обязательное условие</div></div>
+          <div class="priority-row"><div class="state now">Основа</div><div><b>Качество данных</b></div><div>Полнота анализа, классификации потерь, attribution, callback и sampling mode.</div><div>Expected и processed получены независимо; есть source watermark и freeze timestamp.</div></div>
+          <div class="priority-row"><div class="state now">Первый v3</div><div><b>Персонализация</b></div><div>Представление администратора и обращение к клиенту по имени.</div><div>Явная дата начала и coverage; без ложного сравнения с неполным прошлым месяцем.</div></div>
+          <div class="priority-row"><div class="state now">Первый v3</div><div><b>История обращений</b></div><div>Первичный или повторный контакт по истории номера, повтор после первого звонка.</div><div>Называть историей телефона, а не «новыми пациентами»; показывать глубину истории.</div></div>
+          <div class="priority-row"><div class="state next">Условно</div><div><b>Воронка callback</b></div><div>Подтверждённые попытки, соединения и самостоятельные возвраты.</div><div>До высокой финальности — только «подтверждено минимум». Проценты эффективности требуют authoritative evidence и ≥95% known-final.</div></div>
+          <div class="priority-row"><div class="state next">Следующий полный период</div><div><b>Телефонная доступность</b></div><div>Медиана ответа, p90, SLA и покрытие измерением.</div><div>За август нет полного периода. Публиковать после <code>period_complete</code>, полной coverage и достаточной выборки.</div></div>
+          <div class="priority-row"><div class="state next">Условно</div><div><b>Филиалы и возврат после потери</b></div><div>Распределение успешных записей; факт последующей записи по тому же номеру.</div><div>Coverage-гейты и нейтральная корреляционная подпись. Не обещать причинность или «конверсию филиала».</div></div>
+          <div class="priority-row"><div class="state later">Позже</div><div><b>Причины обращений</b></div><div>Структура спроса: зачем звонят и какие услуги интересуют.</div><div>Функция пока не в канонической production-ветке; нужны merge, backfill и полный период.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Макет отчёта v3</h2>
+          <p>Новые данные не надо просто наваливать вниз. Верхняя страница отвечает на три вопроса: что произошло, почему и что делать. Детали открываются по ссылке в кабинете.</p>
+        </div>
+        <div class="report-shell">
+          <div class="report-top">
+            <div class="report-brand"><b>MedScore · Итоги месяца</b><span>Концептуальный макет без клиентских данных</span></div>
+            <div class="report-period">Отчётный период</div>
+          </div>
+          <div class="report-grid">
+            <article class="report-panel">
+              <h3>Что произошло</h3>
+              <p>Один абзац о главном изменении и его вероятной причине — без повторения каждой цифры из карточек.</p>
+              <div class="report-kpis">
+                <div class="mini"><b>KPI</b><span>целевая конверсия + честная база</span></div>
+                <div class="mini"><b>KPI</b><span>пропущенные + callback</span></div>
+                <div class="mini"><b>KPI</b><span>MedScore + версия карты</span></div>
+              </div>
+            </article>
+            <article class="report-panel">
+              <h3>Три действия на месяц</h3>
+              <ol class="actions"><li>Исправить измеримую точку потери.</li><li>Разобрать конкретную группу звонков.</li><li>Закрепить сильный сценарий команды.</li></ol>
+              <span class="action-link">Открыть звонки в кабинете →</span>
+            </article>
+            <article class="report-panel full">
+              <h3>Как клиника возвращает пропущенные обращения</h3>
+              <p>Целевой вид после прохождения coverage-гейта. Исходы с неполными доказательствами не смешиваются с отрицательными.</p>
+              <div class="callback"><div><b>Пропущено</b>все события</div><div><b>Попытка</b>в заданный срок</div><div><b>Соединение</b>подтверждённый контакт</div><div><b>Вернулся сам</b>обратный звонок клиента</div></div>
+            </article>
+            <article class="report-panel">
+              <h3>Команда и персонализация</h3>
+              <p>Одинаковая period-effective карта в отчёте и кабинете. Рядом с каждым процентом — база и покрытие.</p>
+            </article>
+            <article class="report-panel">
+              <h3>Доверие к данным</h3>
+              <p>Небольшой блок отвечает, можно ли сравнивать период и почему отдельные карточки скрыты.</p>
+              <div class="trust"><span>снимок зафиксирован</span><span>период полный</span><span>метод v…</span><span>coverage …</span></div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Контракт честной метрики</h2>
+          <p>Каждая новая карточка должна поставляться не только со значением, но и с доказательством, что значение можно интерпретировать.</p>
+        </div>
+        <div class="card formula">
+          <div class="formula-row"><div>Метрика</div><div>Знаменатель и состояние</div><div>Оговорка в отчёте</div></div>
+          <div class="formula-row"><div><b>Callback funnel</b></div><div>Все пропущенные; true / false / open / unknown.</div><div>Unknown не становится «не перезвонили». Показывается полнота provider-проекции.</div></div>
+          <div class="formula-row"><div><b>Скорость ответа</b></div><div>Только звонки с валидным timing evidence; minimum sample gates.</div><div>Это доступность телефонии, а не оценка качества конкретного сотрудника.</div></div>
+          <div class="formula-row"><div><b>Персонализация</b></div><div><code>yes / (yes + no)</code>; неизвестные отдельно; период активации учтён.</div><div>При неполном августе — текущее значение и coverage, без месячной дельты.</div></div>
+          <div class="formula-row"><div><b>История контакта</b></div><div>История технического номера внутри доступного окна данных.</div><div>Не пациент и не retention. Поздняя загрузка истории способна пересчитать прошлое.</div></div>
+          <div class="formula-row"><div><b>Филиалы</b></div><div>Только успешные записи, где филиал определяется из разговора.</div><div>Разрешено распределение записей; запрещена «конверсия филиала» без общего знаменателя.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Порядок выпуска без сюрпризов</h2>
+          <p>Один fleet-wide релиз после проверок. Условные блоки зависят от доступности данных, а не от волн раскатки.</p>
+        </div>
+        <div class="plan">
+          <article class="phase"><h3>Единый снимок</h3><p>Перевести расчёт на warehouse-контракт с source watermark, expected/processed и sampling provenance.</p></article>
+          <article class="phase"><h3>Parity</h3><p>Брать period-effective KPI-карту и доказать совпадение MedScore с кабинетом на контрольной выборке.</p></article>
+          <article class="phase"><h3>Preflight</h3><p>Проверять свежесть, полноту, review/reconcile, callback generation и неприменённые исправления.</p></article>
+          <article class="phase"><h3>Условные блоки</h3><p>Рендерить только метрики, прошедшие coverage, completeness и comparison gates для этой клиники.</p></article>
+          <article class="phase"><h3>Доставка и CTA</h3><p>Сохранить HTML-файл, добавить защищённую ссылку и действия во внешнюю оболочку кабинета.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Чего в отчёте быть не должно</h2>
+          <p>Даже если технически можно нарисовать карточку, это не означает, что клиенту можно обещать смысл, которого данные не подтверждают.</p>
+        </div>
+        <div class="dont">
+          <article><b>Ложной определённости</b><p>Unknown как false, ноль из нуля как 100%, сравнение неполных периодов и рейтинг по несовместимым формулам.</p></article>
+          <article><b>Неверных бизнес-ярлыков</b><p>«Повторный пациент» из истории телефона и «конверсия филиала» только по уже успешным записям.</p></article>
+          <article><b>Сырого и преждевременного</b><p>Транскрипты, аудио, PII, генерируемые AI-ссылки и функции, которые ещё не вошли в production-контур.</p></article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="shell footer-inner">
+      <span>MedScore · Обезличенный аудит месячного отчёта</span>
+      <span>Основа: код, история изменений и контракты данных на 01.09.2026</span>
+    </div>
+  </footer>
+</body>
+</html>
