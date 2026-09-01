@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Вердикт LLM Council о полноте справочника причин обращения MedScore">
-  <title>MedScore — аудит полноты demand taxonomy</title>
+  <meta name="description" content="Результат bounded challenge-pass справочника причин обращения MedScore">
+  <title>MedScore — результат challenge-pass demand taxonomy</title>
   <style>
     :root {
       --night:#10211c; --ink:#183128; --muted:#64756e; --paper:#f3f1e9;
@@ -26,9 +26,9 @@
     .hero{padding:78px 0 50px}.eyebrow{color:var(--green);font-size:12px;font-weight:900;letter-spacing:.17em;text-transform:uppercase}
     h1{max-width:1000px;margin:14px 0 22px;font:700 clamp(42px,7.4vw,86px)/.96 Georgia,serif;letter-spacing:-.05em}
     .lead{max-width:870px;margin:0;color:var(--muted);font-size:clamp(18px,2.25vw,24px)}
-    .verdict{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center;margin-top:34px;padding:22px 24px;border:1px solid #e8b9b2;border-radius:20px;background:var(--red-bg);box-shadow:var(--shadow)}
-    .verdict-icon{width:56px;height:56px;display:grid;place-items:center;border-radius:50%;background:var(--red);color:white;font:800 24px Georgia,serif}
-    .verdict strong{display:block;font-size:18px}.verdict span{color:#77342e}
+    .verdict{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center;margin-top:34px;padding:22px 24px;border:1px solid #a9d4bd;border-radius:20px;background:var(--mint);box-shadow:var(--shadow)}
+    .verdict-icon{width:56px;height:56px;display:grid;place-items:center;border-radius:50%;background:var(--green);color:white;font:800 24px Georgia,serif}
+    .verdict strong{display:block;font-size:18px}.verdict span{color:#285e49}
     .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:30px}
     .metric{min-height:132px;padding:22px;border:1px solid var(--line);border-radius:18px;background:rgba(255,253,247,.9);box-shadow:var(--shadow)}
     .metric b{display:block;color:var(--green);font:700 38px/1 Georgia,serif}.metric span{display:block;margin-top:12px;color:var(--muted);font-size:14px}
@@ -63,86 +63,86 @@
   </style>
 </head>
 <body>
-  <header class="top"><div class="shell"><div class="brand">MedScore · LLM Council</div><nav><a href="#audit">Метод</a><a href="#facets">Потери</a><a href="#protocol">Протокол</a><a href="#stop">Критерий</a></nav></div></header>
+  <header class="top"><div class="shell"><div class="brand">MedScore · Challenge complete</div><nav><a href="#audit">Метод</a><a href="#facets">Фасеты</a><a href="#protocol">Результат</a><a href="#stop">Граница</a></nav></div></header>
   <main>
     <section class="hero"><div class="shell">
-      <div class="eyebrow">Аудит полноты · 5 советников · 5 peer reviews · chairman</div>
-      <h1>22 категории — не потолок. Это честный baseline.</h1>
-      <p class="lead">Почти сто тысяч результатов дают богатый материал, но объём данных не исправляет слабый discovery. Текущий справочник пригоден как V1 и контрольная точка; близость к максимальной полезной детализации пока не доказана.</p>
-      <div class="verdict"><div class="verdict-icon">!</div><div><strong>Вердикт совета: не подписывать как «почти полную taxonomy»</strong><span>Заморозить 22/78 как версионированный baseline и провести ограниченное повторное discovery на уже извлечённых обезличенных фразах.</span></div></div>
+      <div class="eyebrow">Bounded challenge · два представления · два candidate batch · adjudication</div>
+      <h1>22 / 78 выдержали проверку.</h1>
+      <p class="lead">Повторный discovery на уже извлечённых фразах завершён. Он не нашёл новой причины, которая одновременно проходит support, stability и business-actionability. Зато показал отдельный слой данных — цену, наличие, запись, срочность и канал обращения.</p>
+      <div class="verdict"><div class="verdict-icon">✓</div><div><strong>Решение: сохранить taxonomy 22/78 как «Лето 2026»</strong><span>Не раздувать unknown и не перезапускать 96 тысяч звонков. Следующую полезную глубину строить отдельными фасетами поверх сохранённой request-фразы.</span></div></div>
       <div class="metrics">
-        <div class="metric"><b>96 530</b><span>результатов извлечения — большой корпус, но не 96 тысяч независимых продуктов</span></div>
-        <div class="metric"><b>22 / 78</b><span>категории / именованные детали текущего baseline</span></div>
-        <div class="metric"><b>15,27%</b><span>applicable-звонков совпали с правилами нескольких категорий</span></div>
-        <div class="metric"><b>10,90%</b><span>applicable-обращений остались unknown</span></div>
+        <div class="metric"><b>66 564</b><span>предметных обращений — первичная единица веса challenge</span></div>
+        <div class="metric"><b>45</b><span>кластеров пережили seed, cross-view, confirmation и clinic gates</span></div>
+        <div class="metric"><b>0</b><span>новых actionable categories/details после adjudication</span></div>
+        <div class="metric"><b>22 / 78</b><span>категории / именованные детали итогового летнего baseline</span></div>
       </div>
     </div></section>
 
     <section id="audit"><div class="shell">
-      <div class="head"><h2>Как реально получились 22/78</h2><p>Сильная инженерная часть — frozen input, privacy boundary, appeal aggregation и versioned mapping. Слабая исследовательская часть — доказательство, что пространство концептов исчерпано.</p></div>
+      <div class="head"><h2>Как проверяли насыщение</h2><p>Не ещё одним набором regex, а конкурирующими представлениями на frozen corpus. Фразы остаются локально; наружу выходят только агрегаты.</p></div>
       <div class="method">
-        <article><div class="step">1</div><h3>Короткая фраза</h3><p>Модель читает первые 800 символов и оставляет до семи слов. Всё потерянное здесь taxonomy уже не восстановит.</p></article>
-        <article class="failed"><div class="step">2</div><h3>Кластеризация не сработала</h3><p>Один TF‑IDF/KMeans с k=320 создал гигантские смешанные кластеры. Другие k, embeddings и stability не проверялись.</p></article>
-        <article class="baseline"><div class="step">3</div><h3>104 regex-правила</h3><p>Ручные ordered rules стали фактическим discovery. Первое совпадение побеждает, поэтому порядок влияет на результат.</p></article>
-        <article><div class="step">4</div><h3>Пороги отсекли хвост</h3><p>Категории и детали прошли prevalence gates. Это доказывает частотность найденного, но не отсутствие ненайденного.</p></article>
+        <article><div class="step">1</div><h3>Frozen manifest</h3><p>31 504 нормализованные фразы, веса по обращениям, отдельный учёт звонков, фраз и клиник.</p></article>
+        <article><div class="step">2</div><h3>Два независимых view</h3><p>Lexical TF‑IDF + LSA против локальных multilingual semantic embeddings на k=160/320/480.</p></article>
+        <article><div class="step">3</div><h3>Проверка устойчивости</h3><p>Два seed, 20% confirmation split по фразам и три clinic-holdout fold.</p></article>
+        <article><div class="step">4</div><h3>Два candidate batch</h3><p>Глобальный corpus и отдельный unknown-tail; максимум 30 агрегированных review packets.</p></article>
       </div>
-      <div class="callout">22/78 — граница видимости текущих правил, а не измеренный информационный потолок корпуса.</div>
+      <div class="callout">Support сам по себе ничего не решал: новый detail должен был ещё быть устойчивым, подтвердиться вне discovery-среза и менять бизнес-действие.</div>
     </div></section>
 
     <section><div class="shell">
-      <div class="head"><h2>Что факты доказывают — и чего не доказывают</h2><p>Unknown и multi-match — красные флаги, но не готовый диагноз. Они могут происходить и от плохих правил, и от потерь раньше по конвейеру.</p></div>
+      <div class="head"><h2>Что получилось в цифрах</h2><p>Кластеры сначала резко сжались фильтрами устойчивости, затем прошли содержательную adjudication. Красивый кластер не считался новым понятием автоматически.</p></div>
       <div class="evidence">
-        <div class="fact"><b class="num">2</b><div><strong>гигантских смешанных кластера</strong><span>Первый поглотил 24 950 звонков и 11 924 фразы; второй — 13 500 и 8 900. Такой run не измеряет естественные темы.</span></div></div>
-        <div class="fact"><b class="num">0</b><div><strong>измеренной taxonomy accuracy</strong><span>Две существующие пробы не имеют общих call ID. Можно обсуждать coverage, но нельзя называть его точностью.</span></div></div>
-        <div class="fact"><b class="num">30%</b><div><strong>примерно без species</strong><span>Это потолок отдельной оси исходного extraction, а не аргумент против детализации причины обращения.</span></div></div>
-        <div class="fact"><b class="num">1</b><div><strong>modal-пара на обращение</strong><span>Вторичные намерения могут исчезать. Масштаб этой потери отдельно не измерен — так и надо писать.</span></div></div>
+        <div class="fact"><b class="num">118</b><div><strong>кластеров прошли prevalence gate</strong><span>На основном resolution. Частотность — только первый фильтр, не доказательство нового смысла.</span></div></div>
+        <div class="fact"><b class="num">45</b><div><strong>прошли structural gate</strong><span>Seed stability, cross-view overlap, confirmation phrases и clinic holdout.</span></div></div>
+        <div class="fact"><b class="num">2</b><div><strong>устойчивых группы внутри unknown</strong><span>Обе оказались смешанными и не дали единого нового маршрута или отчётного действия.</span></div></div>
+        <div class="fact"><b class="num">0</b><div><strong>новых material concepts</strong><span>Второй candidate batch пуст по actionability — stop-rule текущего корпуса выполнен.</span></div></div>
       </div>
     </div></section>
 
     <section id="facets"><div class="shell">
-      <div class="head"><h2>Больше деталей — не обязательно больше веток</h2><p>Один запрос может одновременно описывать услугу, симптом, коммерческое намерение и срочность. Иерархия вынуждает выбрать одно; facets сохраняют независимые сигналы.</p></div>
+      <div class="head"><h2>Детализация нашлась на другой оси</h2><p>Причины обращения насыщены, но исходные request-фразы содержат самостоятельные коммерческие и операционные признаки. Их нельзя пихать в медицинскую иерархию.</p></div>
       <div class="layers">
-        <div class="layer"><i>01</i><b>Услуга</b><span>процедура, диагностика, консультация</span></div>
-        <div class="layer"><i>02</i><b>Симптом</b><span>орган, система, состояние</span></div>
-        <div class="layer"><i>03</i><b>Intent</b><span>цена, наличие, запись, условия</span></div>
-        <div class="layer"><i>04</i><b>Urgency</b><span>планово или экстренно</span></div>
-        <div class="layer"><i>05</i><b>Species</b><span>отдельная неполная ось</span></div>
+        <div class="layer"><i>28,7%</i><b>Scheduling</b><span>19 074 обращения</span></div>
+        <div class="layer"><i>10,6%</i><b>Price</b><span>7 050 обращений</span></div>
+        <div class="layer"><i>5,0%</i><b>Availability</b><span>3 302 обращения</span></div>
+        <div class="layer"><i>2,1%</i><b>Urgent</b><span>1 411 обращений</span></div>
+        <div class="layer"><i>4,8%</i><b>Multi-facet</b><span>3 189 обращений</span></div>
       </div>
       <div style="height:20px"></div>
       <div class="versus">
-        <div class="option"><h3>Нельзя делать вслепую</h3><ul><li>дописать ещё regex по вкусу;</li><li>считать каждый multi-match доказательством facets;</li><li>превратить unknown в красивое «Прочее»;</li><li>гнаться за заранее выбранным числом категорий.</li></ul></div>
+        <div class="option"><h3>Ось причины</h3><ul><li>вакцинация;</li><li>УЗИ;</li><li>офтальмология;</li><li>стерилизация.</li></ul></div>
         <div class="vs">VS</div>
-        <div class="option good"><h3>Нужно проверить</h3><ul><li>какие коллизии вызваны правилами;</li><li>какие различия стабильны в semantic discovery;</li><li>где facet меняет действие или отчёт;</li><li>какие локальные продукты проходят clinic gate.</li></ul></div>
+        <div class="option good"><h3>Ортогональные фасеты</h3><ul><li>цена и наличие;</li><li>запись и расписание;</li><li>срочность;</li><li>онлайн, выезд, повторность.</li></ul></div>
       </div>
     </div></section>
 
     <section id="protocol"><div class="shell">
-      <div class="head"><h2>Следующий проход без массовой переразметки</h2><p>Решение Pavel «без human golden» сохраняется. Проверяем воспроизводимость двумя независимыми машинными подходами, третьим арбитром и только 20–30 спорными агрегатами для Pavel.</p></div>
+      <div class="head"><h2>Что именно завершено</h2><p>Challenge исполнил bounded-контракт и остановился после второго пустого по actionability batch. Никакой массовой переразметки звонков не потребовалось.</p></div>
       <div class="protocol">
-        <article><div><strong>Challenge corpus</strong><span>Версионированные агрегированные фразы: Unknown, Other, multi-match, modal-loss, clinic-specific, частотные диапазоны и обычный контроль.</span></div><span class="tag">Сначала</span></article>
-        <article><div><strong>Semantic hierarchy</strong><span>Embeddings + hierarchical/density clustering, несколько разрешений, seeds и bootstrap-выборок.</span></div><span class="tag">Проход A</span></article>
-        <article><div><strong>Facet / graph discovery</strong><span>Независимый поиск service, symptom, intent, urgency и species без навязывания текущей иерархии.</span></div><span class="tag">Проход B</span></article>
-        <article><div><strong>Machine arbitration</strong><span>Третья машина разбирает split/merge, facet-vs-hierarchy и вероятные regex-артефакты.</span></div><span class="tag">Арбитр</span></article>
-        <article><div><strong>Материальные споры Pavel</strong><span>Только 20–30 агрегированных примеров с максимальным влиянием. Это review, не большая golden-разметка.</span></div><span class="tag">Человек</span></article>
+        <article><div><strong>Frozen challenge corpus</strong><span>Веса по обращениям, hash-split, privacy filter и фиксированные версии модели/seed.</span></div><span class="tag">Готово</span></article>
+        <article><div><strong>Alternative discovery</strong><span>Lexical-LSA и multilingual semantic view на трёх разрешениях.</span></div><span class="tag">Готово</span></article>
+        <article><div><strong>Stability gates</strong><span>Seed, cross-view, confirmation split и clinic holdout сократили 118 групп до 45.</span></div><span class="tag">Готово</span></article>
+        <article><div><strong>Unknown-only batch</strong><span>7 255 unknown-обращений дали ноль новых actionable concepts.</span></div><span class="tag">Стоп</span></article>
+        <article><div><strong>Adjudication</strong><span>30 агрегированных пакетов: existing detail, expected overlap, facet или algorithmic mix.</span></div><span class="tag">На подпись</span></article>
       </div>
     </div></section>
 
     <section id="stop"><div class="shell">
-      <div class="head"><h2>Когда можно сказать «выжали максимум»</h2><p>Не когда перестали придумывать regex, а когда дополнительные методы перестали находить устойчивые и бизнес-значимые концепты.</p></div>
+      <div class="head"><h2>Что теперь можно утверждать</h2><p>Stop-rule выполнен именно для зафиксированного летнего корпуса. Accuracy mapping и будущая сезонность остаются отдельными вопросами.</p></div>
       <div class="stop">
-        <div class="panel"><h3>Новый концепт принимается, если</h3><ul><li>стабилен по seeds/bootstrap;</li><li>держится на held-out срезах;</li><li>подтверждён двумя проходами или арбитром;</li><li>проходит общий либо clinic-specific gate;</li><li>меняет продукт, маршрут, действие или отчёт;</li><li>детерминированно назначается runtime.</li></ul></div>
-        <div class="panel"><h3>Летний корпус считается насыщенным, если</h3><ul><li>новые разрешения не дают material concepts;</li><li>unknown разложен на ошибки и реальный tail;</li><li>regex-order sensitivity контролируется;</li><li>modal-loss измерен;</li><li>критерий остановки и доверительные границы заданы заранее.</li></ul></div>
+        <div class="panel"><h3>Можно утверждать</h3><ul><li>22/78 выдержали альтернативный discovery;</li><li>unknown не содержит крупного устойчивого нового класса;</li><li>сырой full-call rerun сейчас не обоснован;</li><li>следующая ценность извлекается из сохранённых фраз;</li><li>runtime остаётся детерминированным.</li></ul></div>
+        <div class="panel"><h3>Нельзя утверждать</h3><ul><li>что это годовая taxonomy;</li><li>что machine agreement равен accuracy;</li><li>что 15% rule overlap — 15% ошибок;</li><li>что каждый semantic cluster — понятие;</li><li>что species с 30% пропусков закрыт.</li></ul></div>
       </div>
       <div style="height:18px"></div>
-      <div class="season"><h3>Главный blind spot peer review: сезонность</h3><p>Данные только за лето 2026. Даже идеальный результат доказывает насыщение летнего корпуса, а не годового ветеринарного спроса. Годовой sign-off требует temporal holdout другого сезона; до него scope должен честно называться «Лето 2026».</p></div>
+      <div class="season"><h3>Граница результата</h3><p>Данные только за лето 2026. Challenge доказывает насыщение этого frozen corpus по заданным продуктовым порогам, но не заменяет temporal holdout другого сезона. Поэтому edition честно остаётся «Лето 2026».</p></div>
     </div></section>
 
     <section><div class="shell">
-      <div class="head"><h2>Как устроен этот вердикт</h2><p>Это не повторная самооценка одного автора. Пять конфликтующих линз дали независимые ответы, затем пять анонимных reviewer’ов критиковали аргументы, а свежий chairman собрал решение.</p></div>
+      <div class="head"><h2>Что выносится на подпись</h2><p>Главная taxonomy не раздувается. Отдельно фиксируется следующая продуктовая возможность — фасеты спроса без повторного чтения звонков.</p></div>
       <div class="council">
-        <div class="panel"><b>5</b><span>независимых советников: contrarian, first principles, expansionist, outsider, executor</span></div>
-        <div class="panel"><b>5</b><span>анонимных peer reviews; все выбрали проверяемый протокол сильнейшим</span></div>
-        <div class="panel"><b>1</b><span>chairman, который отверг несовместимое требование большой human golden</span></div>
+        <div class="panel"><b>22/78</b><span>сохранить как подписываемый baseline `summer_2026`</span></div>
+        <div class="panel"><b>0</b><span>полных raw-call rerun: extraction gate не сработал</span></div>
+        <div class="panel"><b>7</b><span>детерминированных фасетов для отдельной следующей проекции</span></div>
       </div>
     </div></section>
   </main>
