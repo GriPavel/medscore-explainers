@@ -59,7 +59,7 @@
     .council{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.council .panel{box-shadow:none}.council b{display:block;color:var(--green);font:700 34px Georgia,serif}.council span{color:var(--muted);font-size:13px}
     .flow{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;align-items:stretch}.flow article{position:relative;padding:20px 16px;border:1px solid var(--line);border-radius:17px;background:var(--card)}
     .flow article:not(:last-child)::after{content:"→";position:absolute;right:-10px;top:50%;z-index:2;width:20px;height:20px;display:grid;place-items:center;border-radius:50%;background:var(--paper);color:var(--green);font-weight:900;transform:translateY(-50%)}
-    .flow b{display:block;margin-bottom:7px;font-size:14px}.flow span{color:var(--muted);font-size:12px}.contract{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}.contract .panel{box-shadow:none}.contract code{font-weight:800;color:var(--green)}
+    .flow b{display:block;margin-bottom:7px;font-size:14px}.flow span{color:var(--muted);font-size:12px}.contract{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}.contract .panel{box-shadow:none}.contract code{font-weight:800;color:var(--green)}.contract + .season{margin-top:18px}
     footer{padding:44px 0 68px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
     @media(max-width:900px){nav{display:none}.metrics,.method{grid-template-columns:1fr 1fr}.method article:nth-child(2)::after{display:none}.head{grid-template-columns:1fr;gap:14px}.layers{grid-template-columns:repeat(3,1fr)}.flow{grid-template-columns:1fr 1fr}.flow article::after{display:none}.council{grid-template-columns:1fr}}
     @media(max-width:640px){.shell{width:min(100% - 22px,1160px)}.hero{padding-top:50px}.metrics,.method,.evidence,.layers,.stop,.flow,.contract{grid-template-columns:1fr}.method article:not(:last-child)::after{content:"↓";right:50%;top:auto;bottom:-24px;transform:translateX(50%)}.versus{grid-template-columns:1fr}.vs{min-height:34px}.protocol article{grid-template-columns:42px 1fr}.protocol .tag{grid-column:2;justify-self:start}.verdict{grid-template-columns:1fr}.verdict-icon{width:48px;height:48px}}
@@ -126,12 +126,13 @@
         <article><b>2 · Versioned rules</b><span>Taxonomy v1 содержит exact phrase map и семь детерминированных regex-наборов.</span></article>
         <article><b>3 · Controlled tuple</b><span>Warehouse получает category, detail, species, facet array и identity версии.</span></article>
         <article><b>4 · Appeal union</b><span>Причина выбирается модально, фасеты объединяются по всем звонкам суток.</span></article>
-        <article><b>5 · Surfaces</b><span>Лента, карточка, demand report, monthly report и XLSX показывают labels.</span></article>
+        <article><b>5 · Surfaces</b><span>Лента, карточка, «Статистика обращений», monthly report и XLSX показывают labels.</span></article>
       </div>
       <div class="contract">
         <div class="panel"><h3><code>[]</code> — обработано</h3><p>Проекция выполнена, но ни одно из семи условий обращения не найдено.</p></div>
         <div class="panel"><h3><code>NULL</code> — данных нет</h3><p>Исходная demand-проекция отсутствует или не прошла fail-closed validation.</p></div>
       </div>
+      <div class="season"><h3>Это отдельная статистика, а не замена KPI</h3><p>«Статистика обращений» группирует обращения по причинам. Вид животного и условия — дополнительные разрезы этой же таблицы. Существующие KPI кабинета фича не пересчитывает и исторические цифры конверсии не меняет.</p></div>
       <div class="callout">Одно обращение может одновременно быть «вакцинация + цена + запись + срочно». Поэтому доли фасетов не обязаны складываться в 100% — это нормальная multi-label семантика.</div>
     </div></section>
 
@@ -143,8 +144,8 @@
         <article><div><strong>Stability gates</strong><span>Seed, cross-view, confirmation split и clinic holdout сократили 118 групп до 45.</span></div><span class="tag">Готово</span></article>
         <article><div><strong>Unknown-only batch</strong><span>7 255 unknown-обращений дали ноль новых actionable concepts.</span></div><span class="tag">Стоп</span></article>
         <article><div><strong>Adjudication и baseline</strong><span>30 агрегированных пакетов разобраны; taxonomy 22/78 подписана как summer_2026.</span></div><span class="tag">Подписано</span></article>
-        <article><div><strong>Demand facets</strong><span>Семь rules, controlled array, appeal union, кабинет, monthly report и XLSX.</span></div><span class="tag">Реализовано</span></article>
-        <article><div><strong>Verification</strong><span>Точное совпадение на 74 786 applicable rows; затронутый test-suite и SQL boundary зелёные.</span></div><span class="tag">Проверено</span></article>
+        <article><div><strong>Demand facets</strong><span>Семь rules, controlled array, appeal union, «Статистика обращений», monthly report и XLSX.</span></div><span class="tag">Реализовано</span></article>
+        <article><div><strong>Verification</strong><span>Точное совпадение на 74 786 applicable rows; 95 409 backfill-кандидатов, три честных terminal exclusions и ноль blocking counters.</span></div><span class="tag">Проверено</span></article>
       </div>
     </div></section>
 
@@ -152,7 +153,7 @@
       <div class="head"><h2>Что теперь можно утверждать</h2><p>Stop-rule выполнен именно для зафиксированного летнего корпуса. Accuracy mapping и будущая сезонность остаются отдельными вопросами.</p></div>
       <div class="stop">
         <div class="panel"><h3>Можно утверждать</h3><ul><li>22/78 выдержали альтернативный discovery и подписаны;</li><li>unknown не содержит крупного устойчивого нового класса;</li><li>сырой full-call rerun сейчас не обоснован;</li><li>следующая ценность извлекается из сохранённых фраз;</li><li>runtime-проекция фасетов детерминирована и проверена.</li></ul></div>
-        <div class="panel"><h3>Пока нельзя утверждать</h3><ul><li>что это годовая taxonomy;</li><li>что machine agreement равен accuracy;</li><li>что species с 30% пропусков закрыт;</li><li>что три исходных not_done разобраны;</li><li>что схема уже мигрирована или данные появились в production.</li></ul></div>
+        <div class="panel"><h3>Пока нельзя утверждать</h3><ul><li>что это годовая taxonomy;</li><li>что machine agreement равен accuracy;</li><li>что полнота species выше наблюдаемых примерно 70%;</li><li>что официальный full-suite завершён на merge-кандидате;</li><li>что схема уже мигрирована или данные появились в production.</li></ul></div>
       </div>
       <div style="height:18px"></div>
       <div class="season"><h3>Граница результата</h3><p>Данные только за лето 2026. Challenge доказывает насыщение этого frozen corpus по заданным продуктовым порогам, но не заменяет temporal holdout другого сезона. Поэтому edition честно остаётся «Лето 2026».</p></div>
