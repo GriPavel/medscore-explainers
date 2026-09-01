@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Вердикт LLM Council о полноте справочника причин обращения MedScore">
+  <title>MedScore — аудит полноты demand taxonomy</title>
+  <style>
+    :root {
+      --night:#10211c; --ink:#183128; --muted:#64756e; --paper:#f3f1e9;
+      --card:#fffdf7; --line:#d8ddd5; --mint:#dff3e7; --green:#137052;
+      --lime:#b8d84c; --amber:#b86616; --amber-bg:#fff0d7;
+      --red:#a13e36; --red-bg:#fce9e4; --blue:#2e628b; --blue-bg:#e7f0f7;
+      --shadow:0 18px 55px rgba(16,33,28,.09);
+    }
+    *{box-sizing:border-box} html{scroll-behavior:smooth}
+    body{margin:0;color:var(--ink);background:
+      radial-gradient(circle at 6% 2%,rgba(19,112,82,.14),transparent 30rem),
+      radial-gradient(circle at 96% 18%,rgba(184,102,22,.11),transparent 28rem),var(--paper);
+      font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.55}
+    .shell{width:min(1160px,calc(100% - 32px));margin:auto}
+    .top{position:sticky;top:0;z-index:20;border-bottom:1px solid rgba(216,221,213,.9);background:rgba(243,241,233,.9);backdrop-filter:blur(16px)}
+    .top .shell{min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+    .brand{font-size:12px;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
+    nav{display:flex;gap:18px;font-size:13px;color:var(--muted)} nav a{color:inherit;text-decoration:none} nav a:hover{color:var(--green)}
+    .hero{padding:78px 0 50px}.eyebrow{color:var(--green);font-size:12px;font-weight:900;letter-spacing:.17em;text-transform:uppercase}
+    h1{max-width:1000px;margin:14px 0 22px;font:700 clamp(42px,7.4vw,86px)/.96 Georgia,serif;letter-spacing:-.05em}
+    .lead{max-width:870px;margin:0;color:var(--muted);font-size:clamp(18px,2.25vw,24px)}
+    .verdict{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center;margin-top:34px;padding:22px 24px;border:1px solid #e8b9b2;border-radius:20px;background:var(--red-bg);box-shadow:var(--shadow)}
+    .verdict-icon{width:56px;height:56px;display:grid;place-items:center;border-radius:50%;background:var(--red);color:white;font:800 24px Georgia,serif}
+    .verdict strong{display:block;font-size:18px}.verdict span{color:#77342e}
+    .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:30px}
+    .metric{min-height:132px;padding:22px;border:1px solid var(--line);border-radius:18px;background:rgba(255,253,247,.9);box-shadow:var(--shadow)}
+    .metric b{display:block;color:var(--green);font:700 38px/1 Georgia,serif}.metric span{display:block;margin-top:12px;color:var(--muted);font-size:14px}
+    section{padding:58px 0;scroll-margin-top:56px}.head{display:grid;grid-template-columns:.78fr 1.22fr;gap:48px;align-items:end;margin-bottom:28px}
+    h2{margin:0;font:700 clamp(30px,4.2vw,49px)/1.02 Georgia,serif;letter-spacing:-.035em}.head p{margin:0;color:var(--muted);font-size:17px}
+    .panel{padding:26px;border:1px solid var(--line);border-radius:20px;background:var(--card);box-shadow:var(--shadow)}
+    .panel h3{margin:0 0 10px;font-size:20px}.panel p{color:var(--muted)}.panel p:last-child{margin-bottom:0}
+    .method{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;padding:24px;border:1px solid var(--line);border-radius:24px;background:var(--card);box-shadow:var(--shadow)}
+    .method article{position:relative;min-height:210px;padding:19px;border:1px solid #e2e7df;border-radius:16px;background:#f8faf5}
+    .method article:not(:last-child)::after{content:"→";position:absolute;right:-20px;top:84px;z-index:2;color:var(--green);font-size:26px;font-weight:900}
+    .step{width:31px;height:31px;display:grid;place-items:center;border-radius:50%;background:var(--night);color:white;font-weight:900;font-size:13px}
+    .method h3{margin:16px 0 8px;font-size:18px}.method p{margin:0;color:var(--muted);font-size:14px}
+    .method .failed{background:var(--red-bg);border-color:#efc6bf}.method .baseline{background:var(--amber-bg);border-color:#efd1a4}
+    .callout{margin-top:18px;padding:18px 22px;border-left:4px solid var(--amber);border-radius:0 14px 14px 0;background:var(--amber-bg);color:#744313;font-weight:700}
+    .evidence{display:grid;grid-template-columns:1fr 1fr;gap:18px}.fact{display:flex;gap:16px;align-items:flex-start;padding:23px;border:1px solid var(--line);border-radius:18px;background:var(--card)}
+    .fact b.num{flex:0 0 auto;color:var(--green);font:700 30px/1 Georgia,serif}.fact strong{display:block}.fact span{display:block;margin-top:4px;color:var(--muted);font-size:13px}
+    .layers{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.layer{padding:20px 16px;border-radius:17px;border:1px solid var(--line);background:var(--card);text-align:center}
+    .layer i{display:grid;place-items:center;width:42px;height:42px;margin:0 auto 12px;border-radius:12px;background:var(--mint);color:var(--green);font-style:normal;font-weight:900}
+    .layer b{display:block;font-size:14px}.layer span{display:block;margin-top:5px;color:var(--muted);font-size:12px}
+    .versus{display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:stretch}.vs{display:grid;place-items:center;color:var(--muted);font-weight:900}
+    .option{padding:26px;border:1px solid var(--line);border-radius:20px;background:var(--card);box-shadow:var(--shadow)}
+    .option h3{margin:0 0 12px}.option ul{margin:0;padding-left:20px;color:var(--muted)}.option.good{border:2px solid var(--green);background:#f7fcf8}
+    .protocol{display:grid;gap:12px;counter-reset:p}.protocol article{counter-increment:p;display:grid;grid-template-columns:50px 1fr auto;gap:16px;align-items:center;padding:19px 20px;border:1px solid var(--line);border-radius:17px;background:var(--card)}
+    .protocol article::before{content:counter(p);width:38px;height:38px;display:grid;place-items:center;border-radius:50%;background:var(--night);color:white;font-weight:900}
+    .protocol strong{display:block}.protocol span{color:var(--muted);font-size:13px}.tag{padding:6px 10px;border-radius:999px;background:var(--mint);color:var(--green)!important;font-weight:900;white-space:nowrap}
+    .stop{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}.stop .panel{box-shadow:none}.stop ul{margin:0;padding-left:20px;color:var(--muted)}
+    .season{padding:25px;border:1px solid #c4d8e9;border-radius:20px;background:var(--blue-bg);color:#285274}.season h3{margin:0 0 7px}.season p{margin:0}
+    .council{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.council .panel{box-shadow:none}.council b{display:block;color:var(--green);font:700 34px Georgia,serif}.council span{color:var(--muted);font-size:13px}
+    footer{padding:44px 0 68px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+    @media(max-width:900px){nav{display:none}.metrics,.method{grid-template-columns:1fr 1fr}.method article:nth-child(2)::after{display:none}.head{grid-template-columns:1fr;gap:14px}.layers{grid-template-columns:repeat(3,1fr)}.council{grid-template-columns:1fr}}
+    @media(max-width:640px){.shell{width:min(100% - 22px,1160px)}.hero{padding-top:50px}.metrics,.method,.evidence,.layers,.stop{grid-template-columns:1fr}.method article:not(:last-child)::after{content:"↓";right:50%;top:auto;bottom:-24px;transform:translateX(50%)}.versus{grid-template-columns:1fr}.vs{min-height:34px}.protocol article{grid-template-columns:42px 1fr}.protocol .tag{grid-column:2;justify-self:start}.verdict{grid-template-columns:1fr}.verdict-icon{width:48px;height:48px}}
+  </style>
+</head>
+<body>
+  <header class="top"><div class="shell"><div class="brand">MedScore · LLM Council</div><nav><a href="#audit">Метод</a><a href="#facets">Потери</a><a href="#protocol">Протокол</a><a href="#stop">Критерий</a></nav></div></header>
+  <main>
+    <section class="hero"><div class="shell">
+      <div class="eyebrow">Аудит полноты · 5 советников · 5 peer reviews · chairman</div>
+      <h1>22 категории — не потолок. Это честный baseline.</h1>
+      <p class="lead">Почти сто тысяч результатов дают богатый материал, но объём данных не исправляет слабый discovery. Текущий справочник пригоден как V1 и контрольная точка; близость к максимальной полезной детализации пока не доказана.</p>
+      <div class="verdict"><div class="verdict-icon">!</div><div><strong>Вердикт совета: не подписывать как «почти полную taxonomy»</strong><span>Заморозить 22/78 как версионированный baseline и провести ограниченное повторное discovery на уже извлечённых обезличенных фразах.</span></div></div>
+      <div class="metrics">
+        <div class="metric"><b>96 530</b><span>результатов извлечения — большой корпус, но не 96 тысяч независимых продуктов</span></div>
+        <div class="metric"><b>22 / 78</b><span>категории / именованные детали текущего baseline</span></div>
+        <div class="metric"><b>15,27%</b><span>applicable-звонков совпали с правилами нескольких категорий</span></div>
+        <div class="metric"><b>10,90%</b><span>applicable-обращений остались unknown</span></div>
+      </div>
+    </div></section>
+
+    <section id="audit"><div class="shell">
+      <div class="head"><h2>Как реально получились 22/78</h2><p>Сильная инженерная часть — frozen input, privacy boundary, appeal aggregation и versioned mapping. Слабая исследовательская часть — доказательство, что пространство концептов исчерпано.</p></div>
+      <div class="method">
+        <article><div class="step">1</div><h3>Короткая фраза</h3><p>Модель читает первые 800 символов и оставляет до семи слов. Всё потерянное здесь taxonomy уже не восстановит.</p></article>
+        <article class="failed"><div class="step">2</div><h3>Кластеризация не сработала</h3><p>Один TF‑IDF/KMeans с k=320 создал гигантские смешанные кластеры. Другие k, embeddings и stability не проверялись.</p></article>
+        <article class="baseline"><div class="step">3</div><h3>104 regex-правила</h3><p>Ручные ordered rules стали фактическим discovery. Первое совпадение побеждает, поэтому порядок влияет на результат.</p></article>
+        <article><div class="step">4</div><h3>Пороги отсекли хвост</h3><p>Категории и детали прошли prevalence gates. Это доказывает частотность найденного, но не отсутствие ненайденного.</p></article>
+      </div>
+      <div class="callout">22/78 — граница видимости текущих правил, а не измеренный информационный потолок корпуса.</div>
+    </div></section>
+
+    <section><div class="shell">
+      <div class="head"><h2>Что факты доказывают — и чего не доказывают</h2><p>Unknown и multi-match — красные флаги, но не готовый диагноз. Они могут происходить и от плохих правил, и от потерь раньше по конвейеру.</p></div>
+      <div class="evidence">
+        <div class="fact"><b class="num">2</b><div><strong>гигантских смешанных кластера</strong><span>Первый поглотил 24 950 звонков и 11 924 фразы; второй — 13 500 и 8 900. Такой run не измеряет естественные темы.</span></div></div>
+        <div class="fact"><b class="num">0</b><div><strong>измеренной taxonomy accuracy</strong><span>Две существующие пробы не имеют общих call ID. Можно обсуждать coverage, но нельзя называть его точностью.</span></div></div>
+        <div class="fact"><b class="num">30%</b><div><strong>примерно без species</strong><span>Это потолок отдельной оси исходного extraction, а не аргумент против детализации причины обращения.</span></div></div>
+        <div class="fact"><b class="num">1</b><div><strong>modal-пара на обращение</strong><span>Вторичные намерения могут исчезать. Масштаб этой потери отдельно не измерен — так и надо писать.</span></div></div>
+      </div>
+    </div></section>
+
+    <section id="facets"><div class="shell">
+      <div class="head"><h2>Больше деталей — не обязательно больше веток</h2><p>Один запрос может одновременно описывать услугу, симптом, коммерческое намерение и срочность. Иерархия вынуждает выбрать одно; facets сохраняют независимые сигналы.</p></div>
+      <div class="layers">
+        <div class="layer"><i>01</i><b>Услуга</b><span>процедура, диагностика, консультация</span></div>
+        <div class="layer"><i>02</i><b>Симптом</b><span>орган, система, состояние</span></div>
+        <div class="layer"><i>03</i><b>Intent</b><span>цена, наличие, запись, условия</span></div>
+        <div class="layer"><i>04</i><b>Urgency</b><span>планово или экстренно</span></div>
+        <div class="layer"><i>05</i><b>Species</b><span>отдельная неполная ось</span></div>
+      </div>
+      <div style="height:20px"></div>
+      <div class="versus">
+        <div class="option"><h3>Нельзя делать вслепую</h3><ul><li>дописать ещё regex по вкусу;</li><li>считать каждый multi-match доказательством facets;</li><li>превратить unknown в красивое «Прочее»;</li><li>гнаться за заранее выбранным числом категорий.</li></ul></div>
+        <div class="vs">VS</div>
+        <div class="option good"><h3>Нужно проверить</h3><ul><li>какие коллизии вызваны правилами;</li><li>какие различия стабильны в semantic discovery;</li><li>где facet меняет действие или отчёт;</li><li>какие локальные продукты проходят clinic gate.</li></ul></div>
+      </div>
+    </div></section>
+
+    <section id="protocol"><div class="shell">
+      <div class="head"><h2>Следующий проход без массовой переразметки</h2><p>Решение Pavel «без human golden» сохраняется. Проверяем воспроизводимость двумя независимыми машинными подходами, третьим арбитром и только 20–30 спорными агрегатами для Pavel.</p></div>
+      <div class="protocol">
+        <article><div><strong>Challenge corpus</strong><span>Версионированные агрегированные фразы: Unknown, Other, multi-match, modal-loss, clinic-specific, частотные диапазоны и обычный контроль.</span></div><span class="tag">Сначала</span></article>
+        <article><div><strong>Semantic hierarchy</strong><span>Embeddings + hierarchical/density clustering, несколько разрешений, seeds и bootstrap-выборок.</span></div><span class="tag">Проход A</span></article>
+        <article><div><strong>Facet / graph discovery</strong><span>Независимый поиск service, symptom, intent, urgency и species без навязывания текущей иерархии.</span></div><span class="tag">Проход B</span></article>
+        <article><div><strong>Machine arbitration</strong><span>Третья машина разбирает split/merge, facet-vs-hierarchy и вероятные regex-артефакты.</span></div><span class="tag">Арбитр</span></article>
+        <article><div><strong>Материальные споры Pavel</strong><span>Только 20–30 агрегированных примеров с максимальным влиянием. Это review, не большая golden-разметка.</span></div><span class="tag">Человек</span></article>
+      </div>
+    </div></section>
+
+    <section id="stop"><div class="shell">
+      <div class="head"><h2>Когда можно сказать «выжали максимум»</h2><p>Не когда перестали придумывать regex, а когда дополнительные методы перестали находить устойчивые и бизнес-значимые концепты.</p></div>
+      <div class="stop">
+        <div class="panel"><h3>Новый концепт принимается, если</h3><ul><li>стабилен по seeds/bootstrap;</li><li>держится на held-out срезах;</li><li>подтверждён двумя проходами или арбитром;</li><li>проходит общий либо clinic-specific gate;</li><li>меняет продукт, маршрут, действие или отчёт;</li><li>детерминированно назначается runtime.</li></ul></div>
+        <div class="panel"><h3>Летний корпус считается насыщенным, если</h3><ul><li>новые разрешения не дают material concepts;</li><li>unknown разложен на ошибки и реальный tail;</li><li>regex-order sensitivity контролируется;</li><li>modal-loss измерен;</li><li>критерий остановки и доверительные границы заданы заранее.</li></ul></div>
+      </div>
+      <div style="height:18px"></div>
+      <div class="season"><h3>Главный blind spot peer review: сезонность</h3><p>Данные только за лето 2026. Даже идеальный результат доказывает насыщение летнего корпуса, а не годового ветеринарного спроса. Годовой sign-off требует temporal holdout другого сезона; до него scope должен честно называться «Лето 2026».</p></div>
+    </div></section>
+
+    <section><div class="shell">
+      <div class="head"><h2>Как устроен этот вердикт</h2><p>Это не повторная самооценка одного автора. Пять конфликтующих линз дали независимые ответы, затем пять анонимных reviewer’ов критиковали аргументы, а свежий chairman собрал решение.</p></div>
+      <div class="council">
+        <div class="panel"><b>5</b><span>независимых советников: contrarian, first principles, expansionist, outsider, executor</span></div>
+        <div class="panel"><b>5</b><span>анонимных peer reviews; все выбрали проверяемый протокол сильнейшим</span></div>
+        <div class="panel"><b>1</b><span>chairman, который отверг несовместимое требование большой human golden</span></div>
+      </div>
+    </div></section>
+  </main>
+  <footer><div class="shell">Санитизированный инженерный explainer · только агрегированные факты · без звонков, телефонов, клиник и приватной инфраструктуры · 1 сентября 2026</div></footer>
+</body>
+</html>
