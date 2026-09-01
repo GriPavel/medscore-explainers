@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Обезличенная схема исправления подтверждённых выводов Audit-3 по протоколу коррекций Call Review">
+  <title>MedScore · Correction Protocol — Audit-3 repair design</title>
+  <style>
+    :root {
+      --bg: #f3f0e9;
+      --paper: rgba(255, 254, 250, .96);
+      --ink: #182522;
+      --muted: #65736e;
+      --line: #d8ddd8;
+      --night: #14231f;
+      --night-2: #203832;
+      --mint: #197457;
+      --mint-2: #2d9875;
+      --mint-soft: #e2f3eb;
+      --blue: #3f64ad;
+      --blue-soft: #e9eef9;
+      --amber: #a96513;
+      --amber-soft: #fff0d5;
+      --red: #b64036;
+      --red-soft: #fbe9e6;
+      --violet: #6950a1;
+      --violet-soft: #eee9f7;
+      --shadow: 0 22px 65px rgba(26, 43, 37, .11);
+      --radius: 24px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% -5%, rgba(25, 116, 87, .17), transparent 31rem),
+        radial-gradient(circle at 96% 8%, rgba(63, 100, 173, .12), transparent 29rem),
+        var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+      line-height: 1.55;
+    }
+    a { color: inherit; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .shell { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
+    .hero { padding: 70px 0 40px; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 9px; padding: 7px 12px;
+      border: 1px solid #b8d9cc; border-radius: 999px; color: #0d6045;
+      background: rgba(226, 243, 235, .9); font-size: 12px; font-weight: 850;
+      letter-spacing: .08em; text-transform: uppercase;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 0 5px rgba(25, 116, 87, .13); }
+    h1 { margin: 22px 0 17px; max-width: 1050px; font-size: clamp(42px, 6.6vw, 78px); line-height: .99; letter-spacing: -.052em; }
+    .lead { max-width: 930px; margin: 0; color: var(--muted); font-size: clamp(18px, 2.3vw, 23px); }
+    .verdict {
+      display: grid; grid-template-columns: 1.35fr .65fr; margin-top: 33px; overflow: hidden;
+      border: 1px solid #d1d8d3; border-radius: var(--radius); background: var(--paper); box-shadow: var(--shadow);
+    }
+    .verdict-main { padding: 30px 32px; }
+    .verdict-main strong { display: block; margin-bottom: 8px; font-size: 23px; }
+    .verdict-side { display: grid; grid-template-columns: 1fr 1fr; background: var(--night); border-left: 1px solid #31443e; }
+    .metric { display: grid; align-content: center; padding: 27px; color: white; }
+    .metric + .metric { border-left: 1px solid #385048; }
+    .metric b { font-size: 39px; line-height: 1; }
+    .metric span { margin-top: 8px; color: #b8c8c2; font-size: 13px; }
+    .metric.high b { color: #ff958b; }
+    .metric.medium b { color: #ffd384; }
+    .audit-note { margin-top: 14px; color: var(--muted); font-size: 13px; }
+    section { padding: 39px 0; }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 28px; margin-bottom: 21px; }
+    h2 { margin: 0; max-width: 790px; font-size: clamp(29px, 4vw, 44px); line-height: 1.07; letter-spacing: -.038em; }
+    .section-head p { max-width: 585px; margin: 0; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+    .card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); box-shadow: 0 10px 31px rgba(24, 42, 34, .05); }
+    .pad { padding: 24px; }
+    .span-3 { grid-column: span 3; }
+    .span-4 { grid-column: span 4; }
+    .span-5 { grid-column: span 5; }
+    .span-6 { grid-column: span 6; }
+    .span-7 { grid-column: span 7; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: span 12; }
+    .card h3 { margin: 0 0 9px; font-size: 20px; letter-spacing: -.018em; }
+    .card p { margin: 0; color: var(--muted); }
+    .card ul { margin: 13px 0 0; padding-left: 19px; color: var(--muted); }
+    .card li + li { margin-top: 7px; }
+    .tag { display: inline-block; margin-bottom: 12px; padding: 5px 9px; border-radius: 8px; font-size: 11px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+    .tag.high { color: var(--red); background: var(--red-soft); }
+    .tag.medium { color: var(--amber); background: var(--amber-soft); }
+    .tag.low { color: var(--blue); background: var(--blue-soft); }
+    .tag.good { color: var(--mint); background: var(--mint-soft); }
+    .confirmed { position: relative; overflow: hidden; }
+    .confirmed::after { content: "ПОДТВЕРЖДЕНО"; position: absolute; top: 20px; right: -37px; padding: 5px 41px; color: #8e312b; background: #f7d5d1; font-size: 9px; font-weight: 900; letter-spacing: .08em; transform: rotate(38deg); }
+    .failure-flow { display: grid; grid-template-columns: 1fr 42px 1fr 42px 1fr; align-items: stretch; margin-top: 18px; }
+    .node { padding: 17px; border: 1px solid var(--line); border-radius: 16px; background: #fff; }
+    .node b { display: block; margin-bottom: 5px; font-size: 14px; }
+    .node p { font-size: 12px; }
+    .node.bad { border-color: #ebbbb6; background: var(--red-soft); }
+    .arrow { display: grid; place-items: center; color: #8e9b96; font-size: 22px; font-weight: 900; }
+    .architecture { padding: 19px; border-radius: 29px; background: var(--night); box-shadow: var(--shadow); }
+    .arch-flow { display: grid; grid-template-columns: repeat(6, 1fr); gap: 22px; }
+    .arch-step { position: relative; min-height: 180px; padding: 18px; border-radius: 17px; background: #f9f8f3; }
+    .arch-step::after { content: "→"; position: absolute; right: -20px; top: 20px; color: #95aaa2; font-size: 23px; font-weight: 900; }
+    .arch-step:last-child::after { display: none; }
+    .arch-step small { display: block; margin-bottom: 12px; color: var(--mint); font-weight: 900; letter-spacing: .06em; }
+    .arch-step b { display: block; margin-bottom: 7px; font-size: 15px; }
+    .arch-step p { margin: 0; color: var(--muted); font-size: 12px; }
+    .owner { display: inline-block; margin-top: 10px; padding: 3px 7px; border-radius: 999px; color: #40514b; background: #e9ece9; font-size: 9px; font-weight: 800; }
+    .principle { display: grid; grid-template-columns: 1.15fr .85fr; overflow: hidden; margin-top: 17px; border-radius: var(--radius); background: var(--paper); border: 1px solid var(--line); }
+    .principle-copy { padding: 25px; }
+    .principle-copy strong { display: block; margin-bottom: 8px; font-size: 20px; }
+    .principle-copy p { margin: 0; color: var(--muted); }
+    .principle-code { display: grid; align-content: center; padding: 23px; color: #d5e5df; background: var(--night-2); font: 700 13px/1.65 ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .principle-code .ok { color: #7ce3bb; }
+    .principle-code .no { color: #ff9c93; }
+    .repair-table { overflow: hidden; }
+    .repair-row { display: grid; grid-template-columns: .55fr 1.05fr 1.4fr 1.2fr; }
+    .repair-row > div { padding: 17px 18px; border-top: 1px solid var(--line); }
+    .repair-row:first-child > div { border-top: 0; color: var(--muted); background: #e9ece8; font-size: 11px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+    .repair-row code { padding: 2px 6px; border-radius: 6px; color: #334c43; background: #edf0ed; font-size: 12px; }
+    .severity { font-weight: 900; }
+    .severity.high { color: var(--red); }
+    .severity.medium { color: var(--amber); }
+    .score { display: grid; grid-template-columns: .7fr 1.3fr; overflow: hidden; border-radius: var(--radius); background: var(--night); box-shadow: var(--shadow); }
+    .score-number { display: grid; place-items: center; padding: 32px; color: white; background: linear-gradient(145deg, #1d765a, #164b3c); }
+    .score-number b { font-size: clamp(58px, 9vw, 104px); line-height: .9; letter-spacing: -.08em; }
+    .score-number span { margin-top: 9px; color: #bfe2d4; font-size: 13px; }
+    .score-copy { padding: 30px; color: white; }
+    .score-copy h3 { margin: 0 0 10px; font-size: 25px; }
+    .score-copy p { margin: 0; color: #bac8c3; }
+    .smells { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 17px; }
+    .smell { padding: 6px 10px; border: 1px solid #425b52; border-radius: 999px; color: #cfddd8; font-size: 11px; }
+    .test-matrix { overflow: hidden; }
+    .test-row { display: grid; grid-template-columns: 47px 1.4fr 1.2fr; }
+    .test-row > div { padding: 14px 17px; border-top: 1px solid var(--line); }
+    .test-row:first-child > div { border-top: 0; color: var(--muted); background: #e9ece8; font-size: 11px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+    .test-num { color: var(--mint); font-weight: 900; }
+    .phases { display: grid; grid-template-columns: repeat(5, 1fr); gap: 13px; counter-reset: phase; }
+    .phase { position: relative; padding: 21px; border: 1px solid var(--line); border-radius: 18px; background: var(--paper); }
+    .phase::before { counter-increment: phase; content: "0" counter(phase); display: block; margin-bottom: 12px; color: var(--mint); font-size: 12px; font-weight: 900; letter-spacing: .08em; }
+    .phase h3 { margin: 0 0 8px; font-size: 16px; }
+    .phase p { margin: 0; color: var(--muted); font-size: 12px; }
+    .phase.hot { border-color: #e9bcb7; background: #fffaf9; }
+    .phase.hot::before { color: var(--red); }
+    .release { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .release .card { padding: 24px; }
+    .release ol, .release ul { margin: 12px 0 0; padding-left: 20px; color: var(--muted); }
+    .release li + li { margin-top: 8px; }
+    .callout { padding: 28px 30px; border: 1px solid #bddbce; border-radius: var(--radius); color: #214b3e; background: var(--mint-soft); box-shadow: var(--shadow); }
+    .callout small { display: block; margin-bottom: 9px; color: var(--mint); font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+    .callout strong { display: block; max-width: 1000px; font-size: clamp(22px, 3vw, 32px); line-height: 1.18; }
+    .callout p { max-width: 920px; margin: 11px 0 0; color: #48695d; }
+    .footer { padding: 45px 0 65px; color: var(--muted); font-size: 13px; }
+    .footer-inner { display: flex; justify-content: space-between; gap: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
+    @media (max-width: 1040px) {
+      .arch-flow { grid-template-columns: repeat(2, 1fr); }
+      .arch-step::after { display: none; }
+      .span-3 { grid-column: span 6; }
+      .span-4, .span-5, .span-7, .span-8 { grid-column: span 12; }
+      .phases { grid-template-columns: repeat(2, 1fr); }
+      .phase:last-child { grid-column: span 2; }
+    }
+    @media (max-width: 760px) {
+      .shell { width: min(100% - 24px, 1180px); }
+      .hero { padding-top: 43px; }
+      .verdict, .principle, .score, .release { grid-template-columns: 1fr; }
+      .verdict-side { border-left: 0; border-top: 1px solid #385048; }
+      .section-head { display: block; }
+      .section-head p { margin-top: 10px; }
+      .span-3, .span-6 { grid-column: span 12; }
+      .failure-flow { grid-template-columns: 1fr; gap: 9px; }
+      .failure-flow .arrow { height: 26px; transform: rotate(90deg); }
+      .repair-row { grid-template-columns: 1fr; padding: 15px 17px; border-top: 1px solid var(--line); }
+      .repair-row:first-child { display: none; }
+      .repair-row > div { padding: 5px 0; border-top: 0; }
+      .test-row { grid-template-columns: 40px 1fr; }
+      .test-row > div:last-child { grid-column: 2; padding-top: 0; color: var(--muted); font-size: 13px; }
+      .test-row:first-child { display: none; }
+    }
+    @media (max-width: 540px) {
+      .verdict-side, .arch-flow, .phases { grid-template-columns: 1fr; }
+      .metric + .metric { border-left: 0; border-top: 1px solid #385048; }
+      .phase:last-child { grid-column: auto; }
+      .footer-inner { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div class="shell">
+        <span class="eyebrow"><span class="dot"></span>Audit-3 · post-factum repair design · 01.09.2026</span>
+        <h1>Да, косяки реальные. Но чинить надо контракты, а не замазывать симптомы.</h1>
+        <p class="lead">Постфактум-панель прошла полным составом 6/6. После проверки каждого вывода по коду и runtime-поведению подтверждены два серьёзных дефекта и четыре нарушения контрактов. Ниже — минимальный ремонт без новой «архитектуры ради архитектуры».</p>
+        <div class="verdict">
+          <div class="verdict-main">
+            <strong>Вердикт: рефакторинг нельзя считать полностью безопасным</strong>
+            Запись в SQLite и dry→real fence в основе остаются пригодными. Ломаются две границы: доказательство необходимости Sheet-доставки и одноразовость preview-capability. Остальные проблемы локальны и чинятся вместе с ними.
+            <div class="audit-note">Принято 6 выводов · ещё 3 LOW вынесены в усиление тестов и уборку · 6 предложений панели отклонены как недоказанные или ухудшающие fence.</div>
+          </div>
+          <div class="verdict-side">
+            <div class="metric high"><b>2</b><span>HIGH · исправить до следующего нормального релиза</span></div>
+            <div class="metric medium"><b>4</b><span>MEDIUM · закрыть в том же repair changeset</span></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Два HIGH: где именно рвётся поведение</h2>
+          <p>Это не «может быть когда-нибудь». Для обоих дефектов есть достижимая цепочка и подтверждённый нежелательный эффект.</p>
+        </div>
+        <div class="grid">
+          <article class="card pad span-6 confirmed">
+            <span class="tag high">High 01 · delivery proof</span>
+            <h3>DB-only правка ошибочно считается недоставленной</h3>
+            <p>Writer правильно не создаёт Sheet-outbox, когда применены только поля без Sheet-проекции. Протокол видит непустой <code>db_applied</code> и ошибочно трактует <code>not_required</code> как нарушение.</p>
+            <div class="failure-flow">
+              <div class="node"><b>SQLite</b><p>Правка успешно закоммичена.</p></div>
+              <div class="arrow">→</div>
+              <div class="node"><b>Writer</b><p>Для Sheet нечего отправлять: <code>not_required</code>.</p></div>
+              <div class="arrow">→</div>
+              <div class="node bad"><b>Policy</b><p>Ложная эскалация после успешной записи.</p></div>
+            </div>
+          </article>
+          <article class="card pad span-6 confirmed">
+            <span class="tag high">High 02 · capability fence</span>
+            <h3>Preview можно подменить, переиспользовать и сфабриковать</h3>
+            <p>Snapshot и consumed-флаг лежат на самом Python-объекте и остаются присваиваемыми. <code>isinstance</code> плюс виртуальный claim позволяют обойти обещанную одноразовость.</p>
+            <div class="failure-flow">
+              <div class="node"><b>Dry proof</b><p>Выдан preview для поколения A.</p></div>
+              <div class="arrow">→</div>
+              <div class="node"><b>Подмена</b><p>Snapshot/флаг меняются из caller-кода.</p></div>
+              <div class="arrow">→</div>
+              <div class="node bad"><b>Real write</b><p>Проходит A повторно или чужое B.</p></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Целевая архитектура: каждый факт вычисляет его владелец</h2>
+          <p>Главное правило ремонта: протокол оркестрирует доказательства, но не угадывает внутреннюю логику writer-а и не доверяет mutable state caller-а.</p>
+        </div>
+        <div class="architecture">
+          <div class="arch-flow">
+            <article class="arch-step"><small>01 · ADAPTER</small><b>Policy input</b><p>Передаёт канонические ID и две независимые генерации.</p><span class="owner">owner: adapter</span></article>
+            <article class="arch-step"><small>02 · COMMAND</small><b>Validated value</b><p>Строгие строки, immutable remerge context, frozen mappings.</p><span class="owner">owner: protocol boundary</span></article>
+            <article class="arch-step"><small>03 · PREVIEW</small><b>Dry evidence</b><p>Публичный объект показывает результат, но не хранит commit snapshot.</p><span class="owner">owner: public API</span></article>
+            <article class="arch-step"><small>04 · REGISTRY</small><b>Atomic claim</b><p>Модуль хранит frozen snapshot и удаляет его до первого await.</p><span class="owner">owner: protocol module</span></article>
+            <article class="arch-step"><small>05 · WRITER</small><b>Real write + delivery fact</b><p>Сам определяет, существовала ли Sheet-проекция для доставки.</p><span class="owner">owner: SQLite writer</span></article>
+            <article class="arch-step"><small>06 · POLICY</small><b>Stable outcome</b><p>Проверяет typed evidence; наружу сохраняет прежнюю таксономию.</p><span class="owner">owner: adapter policy</span></article>
+          </div>
+        </div>
+        <div class="principle">
+          <div class="principle-copy">
+            <strong>Delivery fix: не импортировать список DB-only полей в протокол</strong>
+            <p>Writer уже строит фактический outbox payload. В <code>DbWriteResult</code> он должен вернуть явный immutable-факт <code>sheet_delivery_needed</code>. Тогда <code>not_required</code> легален только при <code>false</code>, а malformed/неполное evidence отклоняется fail-closed.</p>
+          </div>
+          <div class="principle-code"><span class="ok">queued / applied / confirmed → OK</span><span class="ok">not_required + delivery_needed=false → OK</span><span class="no">not_required + delivery_needed=true/unknown → FAIL</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Что меняем по каждому принятому выводу</h2>
+          <p>Ни одного глобального rewrite. Шесть локальных трансформаций с конкретным владельцем контракта.</p>
+        </div>
+        <div class="card repair-table">
+          <div class="repair-row"><div>Уровень</div><div>Сейчас</div><div>Исправление</div><div>Критерий готовности</div></div>
+          <div class="repair-row"><div class="severity high">HIGH</div><div>Протокол выводит Sheet delta из <code>db_applied</code>.</div><div><b>Introduce explicit result:</b> writer заполняет <code>sheet_delivery_needed: bool</code> из реально построенного outbox payload; протокол валидирует status против этого факта.</div><div>DB-only + Sheets = успех; mixed/Sheet-visible без outbox = отказ.</div></div>
+          <div class="repair-row"><div class="severity high">HIGH</div><div>Snapshot и consumed-флаг присваиваемы на preview.</div><div><b>Encapsulate state:</b> module registry + <code>threading.Lock</code>; exact type; non-virtual atomic pop до первого <code>await</code>. Forged/copy/subclass не зарегистрированы.</div><div>При любых параллельных commit writer вызывается максимум один раз с исходными args.</div></div>
+          <div class="repair-row"><div class="severity medium">MEDIUM</div><div>Один <code>generation</code> служит authority ordering и outbox identity.</div><div><b>Split variable:</b> оставить <code>authority_generation</code> и добавить <code>outbox_generation</code>. Automatic: authority=current, outbox=0; apply-extra/manager сохраняют свои прежние правила.</div><div>Матрица трёх adapters фиксирует точные dry/real kwargs.</div></div>
+          <div class="repair-row"><div class="severity medium">MEDIUM</div><div><code>str(...).strip()</code> принимает malformed ID, меняя его.</div><div><b>Replace normalization with validation:</b> только exact <code>str</code>, non-empty и <code>value == value.strip()</code>; убрать <code>str()</code> у трёх callers.</div><div>Padded/non-string identity отклоняется до writer.</div></div>
+          <div class="repair-row"><div class="severity medium">MEDIUM</div><div>Любой tuple из двух mutable объектов проходит fence.</div><div><b>Replace primitive with value contract:</b> exact <code>(ZoneInfo, LayoutCaps)</code> либо frozen <code>RemergeContext</code>. Неизвестные/mutable варианты отклоняются.</div><div>После preview caller не может изменить real-write remerge input.</div></div>
+          <div class="repair-row"><div class="severity medium">MEDIUM</div><div>Внутренние protocol codes просачиваются в durable policy states.</div><div><b>Introduce translation boundary:</b> точный <code>exc.code</code> остаётся в log; adapter возвращает своё прежнее <code>invalid_authority_token</code> / <code>write_failed:…</code>.</div><div>Негативная generation и другие validation failures не создают новых внешних состояний.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Структурная оценка после аудита</h2>
+          <p>Это оценка именно изменённого контура, а не всего проекта. Базовая декомпозиция уже нормальная; проседает владение состоянием и семантика boundary values.</p>
+        </div>
+        <div class="score">
+          <div class="score-number"><div><b>6/10</b><span>текущая структурная ясность</span></div></div>
+          <div class="score-copy">
+            <h3>До 10/10 не хватает четырёх вещей</h3>
+            <p>Единственного владельца delivery-факта; настоящей инкапсуляции one-shot state; раздельных типов для двух генераций; стабильной публичной таксономии ошибок. После этого можно удалять дублирующий readiness-флаг и dominated manager branch.</p>
+            <div class="smells"><span class="smell">Primitive Obsession</span><span class="smell">Duplicate State</span><span class="smell">Encapsulation Leak</span><span class="smell">Shotgun Translation</span><span class="smell">Divergent Responsibility</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Красные тесты до первого production-изменения</h2>
+          <p>Нынешние 65 infrastructure + 16 protocol тестов зелёные, но ровно эти дырки они не закрывают. Сначала воспроизводим дефекты, затем чиним.</p>
+        </div>
+        <div class="card test-matrix">
+          <div class="test-row"><div>№</div><div>Сценарий</div><div>Ожидаемый контракт</div></div>
+          <div class="test-row"><div class="test-num">01</div><div>DB-only correction у Sheets tenant</div><div>Terminal success, <code>not_required</code>, без эскалации.</div></div>
+          <div class="test-row"><div class="test-num">02</div><div>Mixed DB + Sheet correction с <code>not_required</code></div><div>Fail-closed: delivery invariant false.</div></div>
+          <div class="test-row"><div class="test-num">03</div><div>Marker-only/no-op и malformed empty-applied + visible delta</div><div>Первое разрешено, второе отвергнуто.</div></div>
+          <div class="test-row"><div class="test-num">04</div><div>Retarget/reset/forged/subclass/copy/pickle preview</div><div>Ни одна подмена не доходит до writer.</div></div>
+          <div class="test-row"><div class="test-num">05</div><div><code>asyncio.gather</code> и два thread/event-loop commit</div><div>At most one writer entry с исходным snapshot.</div></div>
+          <div class="test-row"><div class="test-num">06</div><div>Generation matrix: automatic / apply-extra / manager</div><div>Authority и outbox identity соответствуют legacy-правилам.</div></div>
+          <div class="test-row"><div class="test-num">07</div><div>Padded/non-string ID и mutable remerge</div><div>Validation error до dry writer.</div></div>
+          <div class="test-row"><div class="test-num">08</div><div>Все protocol validation codes во всех adapters</div><div>В log — точный код; наружу — один прежний policy outcome.</div></div>
+          <div class="test-row"><div class="test-num">09</div><div>Manager event trace</div><div><code>PREPARE_WRITE &lt; real writer &lt; WRITE_OBSERVED</code>.</div></div>
+          <div class="test-row"><div class="test-num">10</div><div>Один gate в dry и real phase</div><div>Обе фазы используют тот же coordination contract.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Порядок ремонта и выпуска</h2>
+          <p>Сначала восстанавливаем задуманное поведение, затем делаем subtractive cleanup. Так diff остаётся объяснимым, а причина падения — локальной.</p>
+        </div>
+        <div class="phases">
+          <article class="phase hot"><h3>Characterize</h3><p>Добавить 10 узких красных сценариев без правки production-кода.</p></article>
+          <article class="phase hot"><h3>Close HIGH</h3><p>Writer-owned delivery fact; atomically claimed module registry.</p></article>
+          <article class="phase"><h3>Harden boundaries</h3><p>Split generations, strict IDs, immutable remerge, stable policy mapping.</p></article>
+          <article class="phase"><h3>Subtract</h3><p>Удалить duplicate readiness/dead branch; уточнить ложную строку плана.</p></article>
+          <article class="phase"><h3>Prove & release</h3><p>Narrow → adapters → full suite → post-fix Audit-3 → один fleet-wide deploy.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Что сознательно не делаем</h2>
+          <p>Часть советов панели была привлекательной только количеством удалённых строк. Для fence это хреновый критерий.</p>
+        </div>
+        <div class="release">
+          <article class="card">
+            <span class="tag low">Отклонено</span>
+            <h3>Не ослабляем snapshot</h3>
+            <ul>
+              <li>Не заменяем frozen snapshot ссылкой на caller-visible command.</li>
+              <li>Не инлайним его в набор mutable preview-полей.</li>
+              <li>Не удаляем validation/tamper guards ради меньшего числа строк.</li>
+            </ul>
+          </article>
+          <article class="card">
+            <span class="tag good">Сохраняем</span>
+            <h3>Fail-closed и прежние policy outcomes</h3>
+            <ul>
+              <li>Неизвестное delivery evidence считается ошибкой.</li>
+              <li>Generation/timestamp остаются validated boundary.</li>
+              <li>Python capability — защита API от misuse/concurrency, не security sandbox против произвольной module introspection.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="callout">
+          <small>Decision</small>
+          <strong>Я подтверждаю все 2 HIGH и 4 MEDIUM — и рекомендую закрыть их одним repair changeset до следующего обычного релиза.</strong>
+          <p>Ключ к безопасному исправлению: не добавлять ещё проверок поверх неверных данных, а перенести каждый факт к его владельцу. После зелёных тестов — повторный Audit-3 по новому diff и затем единый fleet-wide deploy с обычным preflight, backup, post-check и rollback path.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="shell footer-inner"><span>Sanitized engineering explainer · без customer data и инфраструктурных секретов</span><span>MedScore · Call Review correction protocol</span></div>
+  </footer>
+</body>
+</html>
