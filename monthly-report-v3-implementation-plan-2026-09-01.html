@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Обезличенный план реализации месячного отчёта MedScore v3 после LLM Council">
+  <title>MedScore · Месячный отчёт v3 — план реализации</title>
+  <style>
+    :root {
+      --bg: #f1f0e9;
+      --paper: rgba(255,254,250,.94);
+      --white: #fff;
+      --ink: #172b24;
+      --muted: #64736c;
+      --line: #d7ddd7;
+      --night: #11231d;
+      --night-2: #1b352c;
+      --green: #147354;
+      --green-2: #2d9473;
+      --green-soft: #e2f2ea;
+      --blue: #3b61ab;
+      --blue-soft: #e9eef9;
+      --amber: #a6620c;
+      --amber-soft: #fff0d3;
+      --red: #b23e35;
+      --red-soft: #fbe8e5;
+      --shadow: 0 24px 70px rgba(20,39,31,.11);
+      --radius: 24px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; color: var(--ink); line-height: 1.55;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+      background:
+        radial-gradient(circle at 6% -4%, rgba(20,115,84,.17), transparent 31rem),
+        radial-gradient(circle at 98% 7%, rgba(59,97,171,.11), transparent 28rem),
+        var(--bg);
+    }
+    a { color: inherit; }
+    .shell { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
+    .hero { padding: 70px 0 40px; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 9px; padding: 7px 12px;
+      border: 1px solid #b8d9cd; border-radius: 999px; color: #0e6046;
+      background: rgba(226,242,234,.9); font-size: 12px; font-weight: 850;
+      letter-spacing: .08em; text-transform: uppercase;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 5px rgba(20,115,84,.13); }
+    h1 { margin: 22px 0 16px; max-width: 1060px; font-size: clamp(42px, 6.5vw, 78px); line-height: .99; letter-spacing: -.052em; }
+    .lead { max-width: 900px; margin: 0; color: var(--muted); font-size: clamp(18px, 2.3vw, 23px); }
+    .verdict {
+      display: grid; grid-template-columns: 1.45fr .55fr; margin-top: 32px; overflow: hidden;
+      border: 1px solid #d1d8d2; border-radius: var(--radius); background: var(--paper); box-shadow: var(--shadow);
+    }
+    .verdict-main { padding: 30px 32px; }
+    .verdict-main strong { display: block; margin-bottom: 8px; font-size: 23px; }
+    .verdict-side { padding: 30px 32px; color: #194e3c; background: var(--green-soft); border-left: 1px solid #bddccc; }
+    .verdict-side b { display: block; color: var(--green); font-size: 40px; line-height: 1; }
+    .verdict-side span { display: block; margin-top: 9px; font-size: 14px; }
+    section { padding: 39px 0; }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 28px; margin-bottom: 21px; }
+    h2 { margin: 0; max-width: 760px; font-size: clamp(29px, 4vw, 44px); line-height: 1.07; letter-spacing: -.038em; }
+    .section-head p { max-width: 590px; margin: 0; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+    .card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); box-shadow: 0 10px 31px rgba(24,42,34,.05); }
+    .pad { padding: 24px; }
+    .span-3 { grid-column: span 3; }
+    .span-4 { grid-column: span 4; }
+    .span-5 { grid-column: span 5; }
+    .span-6 { grid-column: span 6; }
+    .span-7 { grid-column: span 7; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: span 12; }
+    .card h3 { margin: 0 0 9px; font-size: 20px; letter-spacing: -.018em; }
+    .card p { margin: 0; color: var(--muted); }
+    .card ul { margin: 13px 0 0; padding-left: 19px; color: var(--muted); }
+    .card li + li { margin-top: 7px; }
+    .tag { display: inline-block; margin-bottom: 12px; padding: 5px 9px; border-radius: 8px; font-size: 11px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+    .tag.good { color: var(--green); background: var(--green-soft); }
+    .tag.info { color: var(--blue); background: var(--blue-soft); }
+    .tag.warn { color: var(--amber); background: var(--amber-soft); }
+    .tag.bad { color: var(--red); background: var(--red-soft); }
+    .scope { overflow: hidden; }
+    .scope-row { display: grid; grid-template-columns: .82fr 1.25fr 1.65fr 1.55fr; }
+    .scope-row > div { padding: 17px 18px; border-top: 1px solid var(--line); }
+    .scope-row:first-child > div { border-top: 0; color: var(--muted); background: #e8ebe7; font-size: 11px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+    .state { font-weight: 850; }
+    .state.now { color: var(--green); }
+    .state.later { color: var(--blue); }
+    .state.never { color: var(--red); }
+    .architecture { padding: 19px; border-radius: 28px; background: var(--night); box-shadow: var(--shadow); }
+    .arch-flow { display: grid; grid-template-columns: repeat(6, 1fr); gap: 22px; }
+    .arch-step { position: relative; min-height: 166px; padding: 18px; border-radius: 17px; background: #f8f7f2; }
+    .arch-step::after { content: "→"; position: absolute; right: -20px; top: 20px; color: #94aaa1; font-size: 23px; font-weight: 900; }
+    .arch-step:last-child::after { display: none; }
+    .arch-step small { display: block; margin-bottom: 12px; color: var(--green); font-weight: 900; letter-spacing: .06em; }
+    .arch-step b { display: block; margin-bottom: 7px; font-size: 15px; }
+    .arch-step p { margin: 0; color: var(--muted); font-size: 12px; }
+    .sources { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 16px; }
+    .source { padding: 22px; border-radius: 18px; background: var(--paper); border: 1px solid var(--line); }
+    .source b { display: block; margin-bottom: 7px; }
+    .source p { margin: 0; color: var(--muted); font-size: 13px; }
+    .gates { display: grid; grid-template-columns: 1fr 58px 1fr; align-items: stretch; }
+    .gate { padding: 25px; border-radius: 20px; }
+    .gate h3 { margin: 0 0 9px; font-size: 21px; }
+    .gate p { margin: 0; font-size: 14px; }
+    .gate.core { color: #784641; background: var(--red-soft); border: 1px solid #e7bcb7; }
+    .gate.optional { color: #38507d; background: var(--blue-soft); border: 1px solid #c7d3ed; }
+    .gate-or { display: grid; place-items: center; color: #89958f; font-weight: 900; }
+    .trust-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 16px; }
+    .trust { padding: 17px; border-radius: 15px; border: 1px solid var(--line); background: var(--white); }
+    .trust b { display: block; margin-bottom: 5px; }
+    .trust p { margin: 0; color: var(--muted); font-size: 12px; }
+    .report-mock { display: grid; grid-template-columns: .75fr 1.25fr; overflow: hidden; background: var(--night); border-radius: 27px; box-shadow: var(--shadow); }
+    .report-copy { padding: 30px; color: white; }
+    .report-copy h3 { margin: 0 0 11px; font-size: 25px; }
+    .report-copy p { margin: 0; color: #b6c5bf; }
+    .paper { margin: 15px; padding: 18px; border-radius: 18px; background: #f8f7f2; }
+    .paper-hero { padding: 15px; border-radius: 13px; color: white; background: var(--green); }
+    .paper-hero b { display: block; font-size: 18px; }
+    .paper-hero span { font-size: 12px; opacity: .83; }
+    .paper-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 9px; }
+    .paper-card { padding: 12px; border: 1px solid var(--line); border-radius: 11px; background: white; }
+    .paper-card b { display: block; font-size: 13px; }
+    .paper-card span { color: var(--muted); font-size: 10px; }
+    .paper-card.wide { grid-column: 1 / -1; }
+    .evidence { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 7px; }
+    .chip { padding: 3px 6px; border-radius: 999px; color: var(--green); background: var(--green-soft); font-size: 9px; font-weight: 800; }
+    .narrator { display: grid; grid-template-columns: 1fr 42px 1fr 42px 1fr 42px 1fr; align-items: stretch; }
+    .narrator-step { padding: 20px; border: 1px solid var(--line); border-radius: 17px; background: var(--paper); }
+    .narrator-step b { display: block; margin-bottom: 7px; }
+    .narrator-step p { margin: 0; color: var(--muted); font-size: 13px; }
+    .arrow { display: grid; place-items: center; color: #89958f; font-size: 22px; font-weight: 900; }
+    .ledger { display: grid; grid-template-columns: 1.1fr .9fr; overflow: hidden; border-radius: var(--radius); background: var(--night); box-shadow: var(--shadow); }
+    .ledger-copy { padding: 31px; color: white; }
+    .ledger-copy h3 { margin: 0 0 10px; font-size: 25px; }
+    .ledger-copy p { margin: 0; color: #b4c3bd; }
+    .ledger-sheet { margin: 15px; padding: 19px; border-radius: 18px; background: #f8f7f2; }
+    .ledger-row { display: grid; grid-template-columns: 1.45fr .8fr .7fr; gap: 8px; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+    .ledger-row:last-child { border-bottom: 0; }
+    .ledger-head { color: var(--muted); font-size: 10px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+    .pill { display: inline-block; padding: 4px 7px; border-radius: 999px; color: var(--green); background: var(--green-soft); font-size: 10px; font-weight: 850; }
+    .phases { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; counter-reset: phase; }
+    .phase { position: relative; padding: 22px; border: 1px solid var(--line); border-radius: 19px; background: var(--paper); }
+    .phase::before { counter-increment: phase; content: "0" counter(phase); display: block; margin-bottom: 13px; color: var(--green); font-size: 12px; font-weight: 900; letter-spacing: .08em; }
+    .phase h3 { margin: 0 0 8px; font-size: 17px; }
+    .phase p { margin: 0; color: var(--muted); font-size: 13px; }
+    .phase ul { margin: 11px 0 0; padding-left: 17px; color: var(--muted); font-size: 12px; }
+    .phase li + li { margin-top: 5px; }
+    .release { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .release .card { padding: 24px; }
+    .release ol, .release ul { margin: 12px 0 0; padding-left: 20px; color: var(--muted); }
+    .release li + li { margin-top: 8px; }
+    .first-move { padding: 29px 31px; border: 1px solid #b9d9cc; border-radius: var(--radius); color: #214b3e; background: var(--green-soft); box-shadow: var(--shadow); }
+    .first-move small { display: block; margin-bottom: 9px; color: var(--green); font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+    .first-move strong { display: block; max-width: 950px; font-size: clamp(22px, 3vw, 32px); line-height: 1.18; }
+    .first-move p { max-width: 900px; margin: 11px 0 0; color: #47665b; }
+    .footer { padding: 44px 0 64px; color: var(--muted); font-size: 13px; }
+    .footer-inner { display: flex; justify-content: space-between; gap: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
+    @media (max-width: 1000px) {
+      .arch-flow { grid-template-columns: repeat(2, 1fr); }
+      .arch-step::after { display: none; }
+      .sources, .trust-list { grid-template-columns: repeat(2, 1fr); }
+      .span-3 { grid-column: span 6; }
+      .span-4, .span-5, .span-7, .span-8 { grid-column: span 12; }
+      .narrator { grid-template-columns: 1fr; gap: 10px; }
+      .narrator .arrow { transform: rotate(90deg); height: 28px; }
+      .phases { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 720px) {
+      .shell { width: min(100% - 24px, 1180px); }
+      .hero { padding-top: 43px; }
+      .verdict, .report-mock, .ledger, .release { grid-template-columns: 1fr; }
+      .verdict-side { border-left: 0; border-top: 1px solid #bfdccc; }
+      .section-head { display: block; }
+      .section-head p { margin-top: 10px; }
+      .sources, .trust-list, .phases { grid-template-columns: 1fr; }
+      .span-3, .span-6 { grid-column: span 12; }
+      .scope-row { grid-template-columns: 1fr; padding: 14px 16px; border-top: 1px solid var(--line); }
+      .scope-row:first-child { display: none; }
+      .scope-row > div { padding: 5px 0; border-top: 0; }
+      .gates { grid-template-columns: 1fr; gap: 9px; }
+      .gate-or { height: 28px; }
+      .paper-grid { grid-template-columns: 1fr; }
+      .paper-card.wide { grid-column: auto; }
+      .ledger-row { grid-template-columns: 1fr; }
+      .ledger-head { display: none; }
+      .footer-inner { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div class="shell">
+        <span class="eyebrow"><span class="dot"></span>Implementation plan · 01.09.2026</span>
+        <h1>Отчёт v3: сначала доказать цифры, потом объяснять их.</h1>
+        <p class="lead">План превращает месячный HTML из красивого слепка нескольких источников в версионированный управленческий продукт: единый расчёт, прозрачное доверие к данным, три проверяемых действия и история результата.</p>
+        <div class="verdict">
+          <div class="verdict-main">
+            <strong>Выбор: warehouse-only, immutable revisions, fail-closed по данным</strong>
+            Старый Sheet-контур не используется как источник или аварийный путь для нового месяца. Если ядро данных не доказано — публикации нет. Если не готова отдельная новая метрика или комментарий — исчезает только эта секция.
+          </div>
+          <div class="verdict-side">
+            <b>1 truth</b>
+            <span>один контракт метрик для кабинета и отчёта</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Что именно берём в работу</h2>
+          <p>Scope ограничен тем, что уже можно определить и проверить. Незрелые сигналы не маскируются красивой визуализацией.</p>
+        </div>
+        <div class="card scope">
+          <div class="scope-row"><div>Решение</div><div>Функция</div><div>Как показываем</div><div>Почему</div></div>
+          <div class="scope-row"><div class="state now">Берём</div><div>Data Trust</div><div>Cutoff, покрытие, метод, выборка, сопоставимость</div><div>Убирает ложные 100% и объясняет ограничения</div></div>
+          <div class="scope-row"><div class="state now">Берём</div><div>Персонализация</div><div>Только post-activation окно, измеренная база, без раннего MoM</div><div>Новая метрика уже полезна, если честно показать знаменатель</div></div>
+          <div class="scope-row"><div class="state now">Берём</div><div>Повторные обращения</div><div>По номеру, с датой начала истории и baseline</div><div>Полезный поведенческий сигнал без выдуманного retention</div></div>
+          <div class="scope-row"><div class="state now">Берём</div><div>Три действия + Ledger</div><div>Evidence, владелец, срок, статус, результат в следующем отчёте</div><div>Замыкает цикл «увидели → сделали → проверили»</div></div>
+          <div class="scope-row"><div class="state later">Позже</div><div>Callback, время ответа, филиалы, причины</div><div>Только после доказанного покрытия и backfill</div><div>Сейчас неполные состояния исказят вывод</div></div>
+          <div class="scope-row"><div class="state never">Не берём</div><div>League, «точность ИИ», причинность из корреляции</div><div>Не показываем как управленческие KPI</div><div>Это создаёт уверенность без доказательной базы</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Конвейер v3</h2>
+          <p>Каждый шаг оставляет проверяемый receipt. Нарратор и дизайн подключаются только после доказанной семантики данных.</p>
+        </div>
+        <div class="architecture">
+          <div class="arch-flow">
+            <article class="arch-step"><small>01 · SCOPE</small><b>Fleet manifest</b><p>Каждый конфиг классифицирован: включён, исключён или ошибочен.</p></article>
+            <article class="arch-step"><small>02 · PROOF</small><b>Freeze & parity</b><p>Период закрыт, исправления применены, source и warehouse сходятся.</p></article>
+            <article class="arch-step"><small>03 · FACTS</small><b>Canonical snapshot</b><p>Числители, знаменатели, sampling и KPI config фиксируются навсегда.</p></article>
+            <article class="arch-step"><small>04 · TRUST</small><b>Readiness gates</b><p>Core решает судьбу публикации; optional — судьбу конкретной секции.</p></article>
+            <article class="arch-step"><small>05 · EXPLAIN</small><b>Safe narrator</b><p>LLM видит только агрегаты и evidence IDs; числа связывает код.</p></article>
+            <article class="arch-step"><small>06 · ACT</small><b>Revision & Ledger</b><p>HTML неизменяем, а действия живут и переходят в следующий месяц.</p></article>
+          </div>
+        </div>
+        <div class="sources">
+          <article class="source"><b>Immutable revision</b><p>Точный snapshot, текст, HTML, hashes и связь с исправленной версией.</p></article>
+          <article class="source"><b>Mutable Action Ledger</b><p>Владелец, срок и статус меняются, не переписывая уже опубликованный отчёт.</p></article>
+          <article class="source"><b>Append-only audit</b><p>Отправка, cabinet view/download и события действий сохраняют историю.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Два уровня отказа</h2>
+          <p>«Недоступно» не равно нулю. Ошибка одного нового сигнала не должна ронять проверенное числовое ядро.</p>
+        </div>
+        <div class="gates">
+          <article class="gate core"><h3>Core gate не пройден</h3><p>Не сошлись источники, покрытие, sampling, KPI-конфиг или инварианты. Для этого tenant и месяца публикации нет. Sheet fallback запрещён.</p></article>
+          <div class="gate-or">или</div>
+          <article class="gate optional"><h3>Optional gate не пройден</h3><p>Нет сопоставимого baseline, мал знаменатель или упала LLM-проверка. Секция скрывается с понятной причиной; остальные данные выпускаются.</p></article>
+        </div>
+        <div class="trust-list">
+          <article class="trust"><b>Trusted</b><p>Полный контракт и покрытие; разрешены факт, сравнение и действие.</p></article>
+          <article class="trust"><b>Qualified</b><p>Факт показан с явной оговоркой; сравнение зависит от policy.</p></article>
+          <article class="trust"><b>Limited</b><p>Только наблюдение. Нельзя делать действие или сильный вывод.</p></article>
+          <article class="trust"><b>Unavailable</b><p>Карточка не превращается в 0; показывается причина отсутствия.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Как будет читаться отчёт</h2>
+          <p>V3 не превращает старую простыню в ещё более длинную. Сначала решение руководителя, затем доказательства и детали.</p>
+        </div>
+        <div class="report-mock">
+          <div class="report-copy">
+            <h3>Сверху — управленческий ответ</h3>
+            <p>До трёх событий месяца, evidence chips, доверие к данным и до трёх действий. Ниже остаются подробные воронка, KPI, команда, потери и методология.</p>
+          </div>
+          <div class="paper">
+            <div class="paper-hero"><b>Главное за месяц</b><span>актуальная версия · данные зафиксированы · 2 сигнала требуют внимания</span></div>
+            <div class="paper-grid">
+              <div class="paper-card wide"><b>01 · Конверсия изменилась</b><span>Пояснение связано только с проверенными evidence.</span><div class="evidence"><i class="chip">числитель / знаменатель</i><i class="chip">сопоставимый период</i><i class="chip">trusted</i></div></div>
+              <div class="paper-card"><b>Data Trust</b><span>5 надёжно · 2 с оговоркой · 1 недоступно</span></div>
+              <div class="paper-card"><b>Новый сигнал</b><span>Персонализация с даты начала измерения</span></div>
+              <div class="paper-card wide"><b>Действия</b><span>Принять · назначить владельца · поставить срок · отслеживать</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>LLM объясняет, но не придумывает</h2>
+          <p>Внешняя модель не получает имена, звонки, телефоны, транскрипты или свободные детали потерь. Модель writer и verifier остаётся закреплённой проектным контрактом.</p>
+        </div>
+        <div class="narrator">
+          <article class="narrator-step"><b>Allowlisted packet</b><p>Только агрегаты, enum-коды, readiness и opaque evidence IDs.</p></article><div class="arrow">→</div>
+          <article class="narrator-step"><b>Structured writer</b><p>Возвращает шаблоны предложений и ссылки на evidence, а не свободные цифры.</p></article><div class="arrow">→</div>
+          <article class="narrator-step"><b>Code validator</b><p>Связывает числовые токены, запрещает новые числа, SLA, факты и URL.</p></article><div class="arrow">→</div>
+          <article class="narrator-step"><b>Fresh verifier</b><p>Отдельный вызов проверяет каждое предложение. Ошибка удаляет всю секцию.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Отчёт становится циклом действий</h2>
+          <p>Рекомендация больше не исчезает после пересылки файла. Она получает стабильный ключ и живёт отдельно от immutable документа.</p>
+        </div>
+        <div class="ledger">
+          <div class="ledger-copy"><h3>Action Ledger</h3><p>Не более трёх действий. Руководитель принимает или отклоняет, назначает владельца и срок. Следующий отчёт показывает состояние и связанное изменение метрики без причинного заявления.</p></div>
+          <div class="ledger-sheet">
+            <div class="ledger-row ledger-head"><div>Действие</div><div>Владелец</div><div>Статус</div></div>
+            <div class="ledger-row"><div>Проверить обработку целевых</div><div>Руководитель</div><div><span class="pill">в работе</span></div></div>
+            <div class="ledger-row"><div>Разобрать повторные обращения</div><div>Не назначен</div><div><span class="pill">предложено</span></div></div>
+            <div class="ledger-row"><div>Закрепить персонализацию</div><div>Администратор</div><div><span class="pill">готово</span></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Порядок реализации</h2>
+          <p>Внутри разработки — зависимые пакеты и quality gates. В production — один общий релиз без tenant-волн.</p>
+        </div>
+        <div class="phases">
+          <article class="phase"><h3>Контракт и oracle</h3><p>Формулы, знаменатели, sampling, period-effective KPI.</p><ul><li>golden fixtures</li><li>реальный месячный parity</li></ul></article>
+          <article class="phase"><h3>Projection и proof</h3><p>PII-reduced warehouse rows, cutoff и source parity.</p><ul><li>least privilege</li><li>real completeness</li></ul></article>
+          <article class="phase"><h3>Snapshot и DB</h3><p>Immutable facts, receipts, revisions, ACL и no-fork цепочка.</p><ul><li>RLS integration</li><li>concurrency tests</li></ul></article>
+          <article class="phase"><h3>Builder и trust</h3><p>Core/optional gates, персонализация и Caller History.</p><ul><li>typed reasons</li><li>stable fingerprints</li></ul></article>
+          <article class="phase"><h3>Narrator и HTML</h3><p>Evidence tokens, fresh verifier, новый responsive report.</p><ul><li>PII poison tests</li><li>golden HTML</li></ul></article>
+          <article class="phase"><h3>Cabinet и Ledger</h3><p>Версии, outer CTA, telemetry, роли и история действий.</p><ul><li>CAS conflicts</li><li>cross-tenant isolation</li></ul></article>
+          <article class="phase"><h3>Delivery и reissue</h3><p>Exact artifact send, crash recovery, late findings и supersedes.</p><ul><li>no duplicate send</li><li>no automatic reissue</li></ul></article>
+          <article class="phase"><h3>Fleet verification</h3><p>Исторический dry-run, текущий preflight и единый релиз.</p><ul><li>zero unexplained drift</li><li>human publication gate</li></ul></article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-head">
+          <h2>Проверка и выпуск</h2>
+          <p>Dry-run — это проверка, не rollout-волна. После успешных тестов одинаковая версия выкатывается на весь согласованный production fleet.</p>
+        </div>
+        <div class="release">
+          <article class="card"><span class="tag info">До релиза</span><h3>Доказать воспроизводимость</h3><ol><li>Один реальный исторический месяц end-to-end.</li><li>Полный исторический fleet dry-run.</li><li>Ноль необъяснённых расхождений с кабинетом.</li><li>Текущий period readiness по каждому tenant.</li><li>Backup, ACL/preflight и полный regression.</li></ol></article>
+          <article class="card"><span class="tag good">Один релиз</span><h3>Выпустить и проверить</h3><ul><li>Добавочные миграции и совместимый application deploy.</li><li>Post-deploy schema, functions, scheduler и cabinet checks.</li><li>No-send fleet run.</li><li>Human approval цифр, ограничений и HTML.</li><li>Штатная публикация для всех ready tenants; blocked причины видимы.</li></ul></article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="first-move">
+          <small>Первый mergeable slice</small>
+          <strong>Не рисовать HTML. Зафиксировать metric contract, aggregate-only snapshot, PII-reduced projection и golden parity.</strong>
+          <p>Сначала один реальный исторический месяц должен дать ноль необъяснённых расхождений, затем — полный fleet dry-run. Только после этого UI, LLM и Action Ledger подключаются к production path.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="shell footer-inner">
+      <span>MedScore · Monthly Report v3</span>
+      <span>Обезличенный implementation plan · 01.09.2026</span>
+    </div>
+  </footer>
+</body>
+</html>
